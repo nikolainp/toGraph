@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.autoSave": "afterDelay",
+		"editor.minimap.enabled": false,
+		"gopls": {
+			"ui.semanticTokens": true
+		}
+	}
+}
