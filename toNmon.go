@@ -1,7 +1,16 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"io"
+	"os"
+)
 
 func main() {
-	fmt.Print("test")
+	run(os.Stdin, os.Stdout)
+}
+
+func run(sIn io.Reader, sOut io.Writer) error {
+	fmt.Fprint(sOut, "test")
+	return nil
 }
