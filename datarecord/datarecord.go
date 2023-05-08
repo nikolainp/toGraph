@@ -41,11 +41,15 @@ func GetDataRecord(data string) (record dataRecord) {
 }
 
 func (obj dataRecord) String() string {
+	return obj.StringWithIndention(0)
+}
+
+func (obj dataRecord) StringWithIndention(indention int) string {
 	buffer := new(bytes.Buffer)
 	writer := bufio.NewWriter(buffer)
 
-	writer.WriteString(fmt.Sprintf("{ \"when\": \"%s\",\n", obj.dateTime.Format("01/02/2006 15:04:05")))
-	writer.WriteString("\t\"type1\": [ ")
+	writer.WriteString(fmt.Sprintf("%s{ \"when\": \"%s\",\n", getIndention(indention), obj.dateTime.Format("01/02/2006 15:04:05")))
+	writer.WriteString(fmt.Sprintf("%s\"type1\": [ ", getIndention(indention)))
 	for i, point := range obj.points {
 		if i == 0 {
 			writer.WriteString(fmt.Sprintf("%g", point))
@@ -54,8 +58,12 @@ func (obj dataRecord) String() string {
 		}
 	}
 	writer.WriteString(" ]\n")
-	writer.WriteString("}")
+	writer.WriteString(fmt.Sprintf("%s}", getIndention(indention)))
 
 	writer.Flush()
 	return buffer.String()
+}
+
+func getIndention(size int) string {
+	return strings.Repeat("\t", size)
 }
