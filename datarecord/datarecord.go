@@ -2,6 +2,7 @@ package datarecord
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"strconv"
 	"strings"
@@ -37,4 +38,24 @@ func GetDataRecord(data string) (record dataRecord) {
 	}
 
 	return
+}
+
+func (obj dataRecord) String() string {
+	buffer := new(bytes.Buffer)
+	writer := bufio.NewWriter(buffer)
+
+	writer.WriteString(fmt.Sprintf("{ \"when\": \"%s\",\n", obj.dateTime.Format("01/02/2006 15:04:05")))
+	writer.WriteString("\t\"type1\": [ ")
+	for i, point := range obj.points {
+		if i == 0 {
+			writer.WriteString(fmt.Sprintf("%g", point))
+		} else {
+			writer.WriteString(fmt.Sprintf(", %g", point))
+		}
+	}
+	writer.WriteString(" ]\n")
+	writer.WriteString("}")
+
+	writer.Flush()
+	return buffer.String()
 }
