@@ -2,10 +2,11 @@ package main
 
 import (
 	"bufio"
-	"html/template"
+	"fmt"
 	"io"
 	"log"
 	"os"
+	"text/template"
 
 	datarecord "github.com/nikolainp/toGraph/datarecord"
 )
@@ -21,34 +22,34 @@ func main() {
 }
 
 func run(sIn io.Reader, sOut io.Writer) error {
+	data := struct {
+		Title    string
+		Columns  []string
+		DataRows []string
+	}{
+		Title:    "My page",
+		Columns:  []string{},
+		DataRows: []string{},
+	}
+
 	scanner := bufio.NewScanner(sIn)
-	//writer := bufio.NewWriter(sOut)
 
 	dataGraph, err := template.New("dataGraph").Parse(graphTemplate)
 	checkErr(err)
 	for i := 0; scanner.Scan(); i++ {
-		data := scanner.Text()
-		record := datarecord.GetDataRecord(data)
-		_ = record
-		//if i == 0 {
-		//	writer.WriteString(record.StringWithIndention(1))
-		//} else {
-		//	writer.WriteString(fmt.Sprintf(",\n%s", record.StringWithIndention(1)))
-		//}
+		dataString := scanner.Text()
+		record := datarecord.GetDataRecord(dataString)
+
+		if i == 0 {
+			for j := 0; j < record.Columns(); j++ {
+				data.Columns = append(data.Columns, fmt.Sprintf("Column %d", j+1))
+			}
+		}
+
+		data.DataRows = append(data.DataRows, record.String())
 	}
 
-	data := struct {
-		Title string
-		Items []string
-	}{
-		Title: "My page",
-		Items: []string{
-			"My photos",
-			"My blog",
-		},
-	}
-
-	err = dataGraph.Execute(os.Stdout, data)
+	err = dataGraph.Execute(sOut, data)
 	checkErr(err)
 
 	return nil

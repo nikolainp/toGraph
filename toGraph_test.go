@@ -19,43 +19,56 @@ func Test_run(t *testing.T) {
 20121015100100 1 2 3
 20121015100130 2 3 4
 20121015100200 1 2 3`,
-			`{
-"hostname": "dummy.rtp.raleigh.ibm.com",
-"whenPattern": "MM/dd/yyyy HH:mm:ss",
-"metadata": {
-	"mdata1": "value 1",
-	"mdata2": "value 2",
-	"mdata3": "completely arbitrary data goes here"
-},
-"types": [
-	{
-	"id": "type1",
-	"name": "type 1",
-	"fields": [ "field11", "field12", "field13" ]
-	}
-],
-"data": [
-	{ "when": "10/15/2012 10:00:00",
-	"type1": [ 1, 2, 3 ]
-	},
-	{ "when": "10/15/2012 10:00:30",
-	"type1": [ 2, 3, 4 ]
-	},
-	{ "when": "10/15/2012 10:01:00",
-	"type1": [ 1, 2, 3 ]
-	},
-	{ "when": "10/15/2012 10:01:30",
-	"type1": [ 2, 3, 4 ]
-	},
-	{ "when": "10/15/2012 10:02:00",
-	"type1": [ 1, 2, 3 ]
-	}
-]
-}
+			`<html>
+	<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>My page</title>
+
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+	<script type='text/javascript'>
+		google.charts.load('current', {'packages':['annotationchart']});
+		google.charts.setOnLoadCallback(drawChart);
+
+		function drawChart() {
+		var data = new google.visualization.DataTable();
+		data.addColumn('date', 'Date');
+		data.addColumn('number', 'Column 1');
+		data.addColumn('number', 'Column 2');
+		data.addColumn('number', 'Column 3');
+		
+		    // [new Date(2314, 2, 16), 24045, 12374],
+		
+		data.addRows([
+			 [new Date(2012, 15, 10, 10, 00, 00), 1, 2, 3]
+			,[new Date(2012, 15, 10, 10, 00, 30), 2, 3, 4]
+			,[new Date(2012, 15, 10, 10, 01, 00), 1, 2, 3]
+			,[new Date(2012, 15, 10, 10, 01, 30), 2, 3, 4]
+			,[new Date(2012, 15, 10, 10, 02, 00), 1, 2, 3]
+		]);
+
+		var chart = new google.visualization.AnnotationChart(document.getElementById('chart_div'));
+
+		var options = {
+			displayAnnotations: true
+		};
+
+		chart.draw(data, options);
+		}
+	</script>
+	</head>
+
+	<body>
+	<div id='chart_div' style='width: 100%; height: 100%;'></div>
+	</body>
+</html>
 `,
 			false,
 		},
 	}
+
+	replacer := strings.NewReplacer(" ", "", "\n", "", "\t", "")
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			sIn := strings.NewReader(tt.sInput)
@@ -64,7 +77,7 @@ func Test_run(t *testing.T) {
 				t.Errorf("run() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if gotSOut := sOut.String(); gotSOut != tt.wantSOut {
+			if gotSOut := sOut.String(); replacer.Replace(gotSOut) != replacer.Replace(tt.wantSOut) {
 				t.Errorf("run() = %v, want %v", gotSOut, tt.wantSOut)
 			}
 		})

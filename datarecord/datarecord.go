@@ -40,30 +40,23 @@ func GetDataRecord(data string) (record dataRecord) {
 	return
 }
 
-func (obj dataRecord) String() string {
-	return obj.StringWithIndention(0)
-}
-
-func (obj dataRecord) StringWithIndention(indention int) string {
+func (obj *dataRecord) String() string {
 	buffer := new(bytes.Buffer)
 	writer := bufio.NewWriter(buffer)
 
-	writer.WriteString(fmt.Sprintf("%s{ \"when\": \"%s\",\n", getIndention(indention), obj.dateTime.Format("01/02/2006 15:04:05")))
-	writer.WriteString(fmt.Sprintf("%s\"type1\": [ ", getIndention(indention)))
-	for i, point := range obj.points {
-		if i == 0 {
-			writer.WriteString(fmt.Sprintf("%g", point))
-		} else {
-			writer.WriteString(fmt.Sprintf(", %g", point))
-		}
+	//[new Date(2314, 2, 16), 24045, 12374],
+
+	writer.WriteString("[")
+	writer.WriteString(fmt.Sprintf("new Date(%s)", obj.dateTime.Format("2006, 02, 01, 15, 04, 05")))
+	for _, point := range obj.points {
+		writer.WriteString(fmt.Sprintf(", %g", point))
 	}
-	writer.WriteString(" ]\n")
-	writer.WriteString(fmt.Sprintf("%s}", getIndention(indention)))
+	writer.WriteString("]")
 
 	writer.Flush()
 	return buffer.String()
 }
 
-func getIndention(size int) string {
-	return strings.Repeat("\t", size)
+func (obj *dataRecord) Columns() int {
+	return len(obj.points)
 }
