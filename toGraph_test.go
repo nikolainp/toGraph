@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func Test_run(t *testing.T) {
+func Test_processFile(t *testing.T) {
 	tests := []struct {
 		name     string
 		sInput   string
@@ -73,7 +73,7 @@ func Test_run(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			sIn := strings.NewReader(tt.sInput)
 			sOut := &bytes.Buffer{}
-			if err := run(sIn, sOut); (err != nil) != tt.wantErr {
+			if err := processFile(sIn, sOut); (err != nil) != tt.wantErr {
 				t.Errorf("run() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}

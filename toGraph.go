@@ -9,6 +9,7 @@ import (
 	"text/template"
 
 	datarecord "github.com/nikolainp/toGraph/datarecord"
+	state "github.com/nikolainp/toGraph/statecontext"
 )
 
 var checkErr = func(err error) {
@@ -18,10 +19,26 @@ var checkErr = func(err error) {
 }
 
 func main() {
-	run(os.Stdin, os.Stdout)
+	state.InitState()
+	state.Configure(os.Args)
+
+	run()
 }
 
-func run(sIn io.Reader, sOut io.Writer) error {
+func run() {
+
+	for _, fileName := range state.Config().InputFiles {
+		inputFile, err := os.Open(fileName)
+		checkErr(err)
+
+		outputFile, err := os.OpenFile(fileName+".html", os.O_CREATE|os.O_WRONLY, 0660)
+		checkErr(err)
+
+		processFile(inputFile, outputFile)
+	}
+}
+
+func processFile(sIn io.Reader, sOut io.Writer) error {
 	data := struct {
 		Title    string
 		Columns  []string

@@ -7,15 +7,6 @@ import (
 	"sync"
 )
 
-type Config struct {
-	NewLineRegex    string
-	SearchLineRegex string
-	SearchPath      string
-	LogOutputPath   string
-
-	printUsage      bool
-}
-
 type state struct {
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -23,7 +14,7 @@ type state struct {
 	signChan  chan os.Signal
 	workersWg sync.WaitGroup
 
-	config Config
+	config Configuration
 }
 
 var once sync.Once
@@ -37,11 +28,13 @@ func InitState() {
 	})
 }
 
-func Configure(args ...string) (*Config) {
+func Configure(args []string) {
 	InitState()
-	innerState.config.configure(args...)
+	innerState.config.configure(args)
+}
 
-	return &innerState.config
+func Config() Configuration {
+	return innerState.config
 }
 
 func Go(work func()) {
@@ -63,11 +56,11 @@ func Done() <-chan struct{} {
 
 func IsDone() bool {
 	select {
-    case _, ok := <- Done():
-        return !ok
-    default:
-        return false
-    }
+	case _, ok := <-Done():
+		return !ok
+	default:
+		return false
+	}
 }
 
 func CheckErr(err error) {
