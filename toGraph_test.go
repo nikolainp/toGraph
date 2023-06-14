@@ -40,11 +40,11 @@ func Test_processFile(t *testing.T) {
 		    // [new Date(2314, 2, 16), 24045, 12374],
 		
 		data.addRows([
-			 [new Date(2012, 15, 10, 10, 00, 00), 1, 2, 3]
-			,[new Date(2012, 15, 10, 10, 00, 30), 2, 3, 4]
-			,[new Date(2012, 15, 10, 10, 01, 00), 1, 2, 3]
-			,[new Date(2012, 15, 10, 10, 01, 30), 2, 3, 4]
-			,[new Date(2012, 15, 10, 10, 02, 00), 1, 2, 3]
+			 [new Date(2012, 10, 15, 10, 00, 00), 1, 2, 3]
+			,[new Date(2012, 10, 15, 10, 00, 30), 2, 3, 4]
+			,[new Date(2012, 10, 15, 10, 01, 00), 1, 2, 3]
+			,[new Date(2012, 10, 15, 10, 01, 30), 2, 3, 4]
+			,[new Date(2012, 10, 15, 10, 02, 00), 1, 2, 3]
 		]);
 
 		var chart = new google.visualization.AnnotationChart(document.getElementById('chart_div'));
