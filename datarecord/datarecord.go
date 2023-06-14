@@ -47,7 +47,7 @@ func (obj *dataRecord) String() string {
 	//[new Date(2314, 2, 16), 24045, 12374],
 
 	writer.WriteString("[")
-	writer.WriteString(fmt.Sprintf("new Date(%s)", obj.dateTime.Format("2006, 02, 01, 15, 04, 05")))
+	writer.WriteString(fmt.Sprintf("new Date(%s)", obj.dateTime.Format("2006, 01, 02, 15, 04, 05")))
 	for _, point := range obj.points {
 		writer.WriteString(fmt.Sprintf(", %g", point))
 	}

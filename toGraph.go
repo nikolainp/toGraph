@@ -34,6 +34,7 @@ func run() {
 		outputFile, err := os.OpenFile(fileName+".html", os.O_CREATE|os.O_WRONLY, 0660)
 		checkErr(err)
 
+		log.Printf("file being processed: %s", fileName)
 		processFile(inputFile, outputFile)
 	}
 }

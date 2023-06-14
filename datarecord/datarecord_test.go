@@ -34,9 +34,9 @@ func Test_dataRecord_String(t *testing.T) {
 		want string
 	}{
 		{"test 1", dataRecord{time.Date(2012, time.October, 15, 10, 1, 0, 0, time.Local), []float32{1, 2, 3}},
-			`[new Date(2012, 15, 10, 10, 01, 00), 1, 2, 3]`},
+			`[new Date(2012, 10, 15, 10, 01, 00), 1, 2, 3]`},
 		{"test 2", dataRecord{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local), []float32{2, 3, 4}},
-			`[new Date(2012, 15, 10, 10, 01, 30), 2, 3, 4]`},
+			`[new Date(2012, 10, 15, 10, 01, 30), 2, 3, 4]`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
