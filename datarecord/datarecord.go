@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -14,6 +15,12 @@ type dataRecord struct {
 	points   []float32
 }
 
+var checkErr = func(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func GetDataRecord(data string) (record dataRecord) {
 	scan := bufio.NewScanner(strings.NewReader(data))
 	scan.Split(bufio.ScanWords)
@@ -22,18 +29,14 @@ func GetDataRecord(data string) (record dataRecord) {
 
 		if record.dateTime.IsZero() {
 			t, err := time.ParseInLocation("20060102150405", word, time.Local)
-			if err != nil {
-				fmt.Print(err)
-			}
+			checkErr(err)
 			record.dateTime = t
 
 			continue
 		}
 
 		s, err := strconv.ParseFloat(word, 32)
-		if err != nil {
-			fmt.Print(err)
-		}
+		checkErr(err)
 		record.points = append(record.points, float32(s))
 	}
 
