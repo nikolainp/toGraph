@@ -10,6 +10,9 @@ import (
 	"time"
 )
 
+type dataReader struct {
+	dateFormat string
+}
 type dataRecord struct {
 	dateTime time.Time
 	points   []float32
@@ -21,14 +24,29 @@ var checkErr = func(err error) {
 	}
 }
 
-func GetDataRecord(data string) (record dataRecord) {
+///////////////////////////////////////////////////////
+// dataReader
+
+func GetDataReader() (reader dataReader) {
+	return
+}
+
+func (obj *dataReader) WithDateFormat(dateFormat string) *dataReader {
+	obj.dateFormat = dateFormat
+	return obj
+}
+
+///////////////////////////////////////////////////////
+// dateRecord
+
+func (obj *dataReader) GetDataRecord(data string) (record dataRecord) {
 	scan := bufio.NewScanner(strings.NewReader(data))
 	scan.Split(bufio.ScanWords)
 	for scan.Scan() {
 		word := scan.Text()
 
 		if record.dateTime.IsZero() {
-			t, err := time.ParseInLocation("20060102150405", word, time.Local)
+			t, err := time.ParseInLocation(obj.dateFormat, word, time.Local)
 			checkErr(err)
 			record.dateTime = t
 

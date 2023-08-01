@@ -35,11 +35,11 @@ func run() {
 		checkErr(err)
 
 		log.Printf("file being processed: %s", fileName)
-		processFile(inputFile, outputFile)
+		processFile(inputFile, outputFile, state.Config())
 	}
 }
 
-func processFile(sIn io.Reader, sOut io.Writer) error {
+func processFile(sIn io.Reader, sOut io.Writer, config state.Configuration) error {
 	data := struct {
 		Title    string
 		Columns  []string
@@ -51,12 +51,14 @@ func processFile(sIn io.Reader, sOut io.Writer) error {
 	}
 
 	scanner := bufio.NewScanner(sIn)
+	reader := datarecord.GetDataReader()
+	reader.WithDateFormat(config.DateFormat)
 
 	dataGraph, err := template.New("dataGraph").Parse(graphTemplate)
 	checkErr(err)
 	for i := 0; scanner.Scan(); i++ {
 		dataString := scanner.Text()
-		record := datarecord.GetDataRecord(dataString)
+		record := reader.GetDataRecord(dataString)
 
 		if i == 0 {
 			for j := 0; j < record.Columns(); j++ {

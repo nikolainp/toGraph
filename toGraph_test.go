@@ -4,9 +4,14 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+
+	state "github.com/nikolainp/toGraph/statecontext"
 )
 
 func Test_processFile(t *testing.T) {
+	var config state.Configuration
+	config.DateFormat = "20060102150405"
+
 	tests := []struct {
 		name     string
 		sInput   string
@@ -73,7 +78,7 @@ func Test_processFile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			sIn := strings.NewReader(tt.sInput)
 			sOut := &bytes.Buffer{}
-			if err := processFile(sIn, sOut); (err != nil) != tt.wantErr {
+			if err := processFile(sIn, sOut, config); (err != nil) != tt.wantErr {
 				t.Errorf("run() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}

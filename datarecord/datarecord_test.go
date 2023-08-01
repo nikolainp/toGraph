@@ -7,6 +7,9 @@ import (
 )
 
 func TestGetDataRecord(t *testing.T) {
+	var reader dataReader;
+	reader.dateFormat = "20060102150405";
+
 	type args struct {
 		data string
 	}
@@ -20,7 +23,7 @@ func TestGetDataRecord(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := GetDataRecord(tt.args.data); !reflect.DeepEqual(got, tt.want) {
+			if got := reader.GetDataRecord(tt.args.data); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetDataRecord() = %v, want %v", got, tt.want)
 			}
 		})
