@@ -12,6 +12,7 @@ var errEmptyArgumentList = fmt.Errorf("empty argument list")
 type Configuration struct {
 	InputFiles []string
 	DateFormat string
+	DateColumn int
 
 	programName string
 	printUsage  bool
@@ -36,13 +37,13 @@ func (obj *Configuration) printErrorAndUsage(fs *flag.FlagSet, err error) {
 }
 
 func covertDateFormat(dateFormat string) string {
-	// "YYYYMMDDHHMMSS", "20060102150405"
+	// "YYYYMMDDHHmmSS", "20060102150405"
 	dateFormat = strings.Replace(dateFormat, "YYYY", "2006", 1)
 	dateFormat = strings.Replace(dateFormat, "YY", "06", 1)
 	dateFormat = strings.Replace(dateFormat, "MM", "01", 1)
 	dateFormat = strings.Replace(dateFormat, "DD", "02", 1)
 	dateFormat = strings.Replace(dateFormat, "HH", "15", 1)
-	dateFormat = strings.Replace(dateFormat, "MM", "04", 1)
+	dateFormat = strings.Replace(dateFormat, "mm", "04", 1)
 	dateFormat = strings.Replace(dateFormat, "SS", "05", 1)
 
 	return dateFormat
@@ -51,7 +52,8 @@ func covertDateFormat(dateFormat string) string {
 func readCommandLineArguments(config *Configuration, args []string) (fs *flag.FlagSet, err error) {
 	fs = flag.NewFlagSet("", flag.ContinueOnError)
 	fs.BoolVar(&config.printUsage, "h", false, "print usage")
-	fs.StringVar(&config.DateFormat, "d", "YYYYMMDDHHMMSS", "time field format (YYYY-MM-DDTHH:MM:SS.mmmmmm), YYYYMMDDHHMMSS by default")
+	fs.StringVar(&config.DateFormat, "t", "YYYYMMDDHHmmSS", "time field format (YYYY-MM-DDTHH:mm:SS.ssssss)")
+	fs.IntVar(&config.DateColumn, "tc", 1, "ordinal number of the column with time")
 	// fs.StringVar(&config.LogOutputPath, "o", "", "log output file")
 
 	if len(args) == 0 {

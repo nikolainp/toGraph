@@ -12,6 +12,7 @@ import (
 
 type dataReader struct {
 	dateFormat string
+	dateColumn int
 }
 type dataRecord struct {
 	dateTime time.Time
@@ -36,16 +37,21 @@ func (obj *dataReader) WithDateFormat(dateFormat string) *dataReader {
 	return obj
 }
 
+func (obj *dataReader) WithDateColumn(dateColumn int) *dataReader {
+	obj.dateColumn = dateColumn
+	return obj
+}
+
 ///////////////////////////////////////////////////////
 // dateRecord
 
 func (obj *dataReader) GetDataRecord(data string) (record dataRecord) {
 	scan := bufio.NewScanner(strings.NewReader(data))
 	scan.Split(bufio.ScanWords)
-	for scan.Scan() {
+	for column := 1; scan.Scan(); column++ {
 		word := scan.Text()
 
-		if record.dateTime.IsZero() {
+		if column == obj.dateColumn {
 			t, err := time.ParseInLocation(obj.dateFormat, word, time.Local)
 			checkErr(err)
 			record.dateTime = t

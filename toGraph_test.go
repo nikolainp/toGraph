@@ -11,6 +11,7 @@ import (
 func Test_processFile(t *testing.T) {
 	var config state.Configuration
 	config.DateFormat = "20060102150405"
+	config.DateColumn = 1
 
 	tests := []struct {
 		name     string

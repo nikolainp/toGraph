@@ -16,31 +16,51 @@ func Test_readCommandLineArguments(t *testing.T) {
 		want want
 	}{
 		{"empty argument list", []string{},
-			want{Configuration{DateFormat: "YYYYMMDDHHMMSS", printUsage: false}, errEmptyArgumentList}},
+			want{Configuration{
+				DateFormat: "YYYYMMDDHHmmSS",
+				DateColumn: 1,
+				printUsage: false}, errEmptyArgumentList}},
 		{"test 1", []string{"programname"},
 			want{Configuration{
-				DateFormat:  "YYYYMMDDHHMMSS",
+				DateFormat:  "YYYYMMDDHHmmSS",
+				DateColumn:  1,
 				programName: "programname",
 				printUsage:  true}, nil}},
 		{"help", []string{"programname", "-h"},
 			want{Configuration{
-				DateFormat:  "YYYYMMDDHHMMSS",
+				DateFormat:  "YYYYMMDDHHmmSS",
+				DateColumn:  1,
+				programName: "programname",
+				printUsage:  true}, nil}},
+		{"dateFormat", []string{"programname", "-t", "YYMMDDHHmm"},
+			want{Configuration{
+				DateFormat:  "YYMMDDHHmm",
+				DateColumn:  1,
+				programName: "programname",
+				printUsage:  true}, nil}},
+		{"dateColumn", []string{"programname", "-tc", "2"},
+			want{Configuration{
+				DateFormat:  "YYYYMMDDHHmmSS",
+				DateColumn:  2,
 				programName: "programname",
 				printUsage:  true}, nil}},
 		{"test 2", []string{"programname", "what"},
 			want{Configuration{
 				InputFiles:  []string{"what"},
-				DateFormat:  "YYYYMMDDHHMMSS",
+				DateFormat:  "YYYYMMDDHHmmSS",
+				DateColumn:  1,
 				programName: "programname"}, nil}},
 		{"test 3", []string{"programname", "what", "where"},
 			want{Configuration{
 				InputFiles:  []string{"what", "where"},
-				DateFormat:  "YYYYMMDDHHMMSS",
+				DateFormat:  "YYYYMMDDHHmmSS",
+				DateColumn:  1,
 				programName: "programname"}, nil}},
 		{"test 4", []string{"programname", "newLine", "what", "where"},
 			want{Configuration{
 				InputFiles:  []string{"newLine", "what", "where"},
-				DateFormat:  "YYYYMMDDHHMMSS",
+				DateFormat:  "YYYYMMDDHHmmSS",
+				DateColumn:  1,
 				programName: "programname"}, nil}},
 	}
 	for _, tt := range tests {
@@ -63,8 +83,8 @@ func Test_covertDateFormat(t *testing.T) {
 		commonDateFormat string
 		wantGoDateFormat string
 	}{
-		{"test 1", "YYYYMMDDHHMMSS", "20060102150405"},
-		{"test 2", "YYMMDDHHMMSS", "060102150405"},
+		{"test 1", "YYYYMMDDHHmmSS", "20060102150405"},
+		{"test 2", "YYMMDDHHmmSS", "060102150405"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

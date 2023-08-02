@@ -9,6 +9,7 @@ import (
 func TestGetDataRecord(t *testing.T) {
 	var reader dataReader;
 	reader.dateFormat = "20060102150405";
+	reader.dateColumn = 1;
 
 	type args struct {
 		data string

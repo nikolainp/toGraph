@@ -53,6 +53,7 @@ func processFile(sIn io.Reader, sOut io.Writer, config state.Configuration) erro
 	scanner := bufio.NewScanner(sIn)
 	reader := datarecord.GetDataReader()
 	reader.WithDateFormat(config.DateFormat)
+	reader.WithDateColumn(config.DateColumn)
 
 	dataGraph, err := template.New("dataGraph").Parse(graphTemplate)
 	checkErr(err)
