@@ -13,6 +13,7 @@ type Configuration struct {
 	InputFiles []string
 	DateFormat string
 	DateColumn int
+	PivotColumn int
 
 	programName string
 	printUsage  bool
@@ -54,6 +55,7 @@ func readCommandLineArguments(config *Configuration, args []string) (fs *flag.Fl
 	fs.BoolVar(&config.printUsage, "h", false, "print usage")
 	fs.StringVar(&config.DateFormat, "t", "YYYYMMDDHHmmSS", "time field format (YYYY-MM-DDTHH:mm:SS.ssssss)")
 	fs.IntVar(&config.DateColumn, "tc", 1, "ordinal number of the column with time")
+	fs.IntVar(&config.PivotColumn, "pc", 0, "pivot column")
 	// fs.StringVar(&config.LogOutputPath, "o", "", "log output file")
 
 	if len(args) == 0 {

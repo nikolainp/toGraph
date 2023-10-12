@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -18,6 +17,10 @@ var checkErr = func(err error) {
 	}
 }
 
+// TODO: truncate file
+// TODO: delimiter
+// TODO: column names
+
 func main() {
 	state.InitState()
 	state.Configure(os.Args)
@@ -31,7 +34,7 @@ func run() {
 		inputFile, err := os.Open(fileName)
 		checkErr(err)
 
-		outputFile, err := os.OpenFile(fileName+".html", os.O_CREATE|os.O_WRONLY, 0660)
+		outputFile, err := os.OpenFile(fileName+".html", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0660)
 		checkErr(err)
 
 		log.Printf("file being processed: %s", fileName)
@@ -40,34 +43,28 @@ func run() {
 }
 
 func processFile(sIn io.Reader, sOut io.Writer, config state.Configuration) error {
+
+	scanner := bufio.NewScanner(sIn)
+	reader := datarecord.GetDataReader()
+	reader.WithDateFormat(config.DateFormat)
+	reader.WithDateColumn(config.DateColumn)
+	reader.WithPivotColumn(config.PivotColumn)
+
+	dataGraph, err := template.New("dataGraph").Parse(graphTemplate)
+	checkErr(err)
+	for i := 0; scanner.Scan(); i++ {
+		dataString := scanner.Text()
+		reader.ReadDataRecord(dataString)
+	}
+
 	data := struct {
 		Title    string
 		Columns  []string
 		DataRows []string
 	}{
 		Title:    "My page",
-		Columns:  []string{},
-		DataRows: []string{},
-	}
-
-	scanner := bufio.NewScanner(sIn)
-	reader := datarecord.GetDataReader()
-	reader.WithDateFormat(config.DateFormat)
-	reader.WithDateColumn(config.DateColumn)
-
-	dataGraph, err := template.New("dataGraph").Parse(graphTemplate)
-	checkErr(err)
-	for i := 0; scanner.Scan(); i++ {
-		dataString := scanner.Text()
-		record := reader.GetDataRecord(dataString)
-
-		if i == 0 {
-			for j := 0; j < record.Columns(); j++ {
-				data.Columns = append(data.Columns, fmt.Sprintf("Column %d", j+1))
-			}
-		}
-
-		data.DataRows = append(data.DataRows, record.String())
+		Columns:  reader.GetColumns(),
+		DataRows: reader.GetDataRows(),
 	}
 
 	err = dataGraph.Execute(sOut, data)
