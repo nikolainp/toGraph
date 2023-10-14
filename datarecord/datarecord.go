@@ -5,11 +5,10 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
-
-	"golang.org/x/exp/maps"
 )
 
 type void struct{}
@@ -82,15 +81,12 @@ func (obj *dataReader) ReadDataRecord(data string) {
 func (obj *dataReader) GetColumns() []string {
 
 	columns := make([]string, 0, 10)
-	if len(obj.columnNames) == 0 {
-		for i := 1; i < obj.points+1; i++ {
-			columns = append(columns, fmt.Sprintf("Column %d", i))
+	for _, name := range obj.getColumnNames() {
+		if name == "" {
+			name = "Column"
 		}
-	} else {
-		for name := range obj.columnNames {
-			for i := 1; i < obj.points+1; i++ {
-				columns = append(columns, fmt.Sprintf("%s%d", name, i))
-			}
+		for i := 1; i < obj.points+1; i++ {
+			columns = append(columns, fmt.Sprintf("%s %d", name, i))
 		}
 	}
 
@@ -101,16 +97,13 @@ func (obj *dataReader) GetDataRows() []string {
 
 	rows := make([]string, 0, 10)
 
-	columns := maps.Keys(obj.columnNames)
-	if len(columns) == 0 {
-		columns = append(columns, "")
-	}
+	columns := obj.getColumnNames()
 
 	buffer := new(bytes.Buffer)
 	writer := bufio.NewWriter(buffer)
 
 	for i := 0; i < obj.points; i++ {
-		writer.WriteString(", ")
+		writer.WriteString(", null")
 	}
 	writer.Flush()
 	blankPoints := buffer.String()
@@ -141,6 +134,23 @@ func (obj *dataReader) GetDataRows() []string {
 	}
 
 	return rows
+}
+
+///////////////////////////////////////////////////////
+
+func (obj *dataReader) getColumnNames() []string {
+	columns := make([]string, 0, 10)
+	if len(obj.columnNames) == 0 {
+		columns = append(columns, "")
+	} else {
+		for name := range obj.columnNames {
+			columns = append(columns, name)
+		}
+	}
+
+	sort.Strings(columns)
+
+	return columns
 }
 
 ///////////////////////////////////////////////////////
@@ -175,25 +185,4 @@ func (obj *dataReader) getDataRecord(data string) (record dataRecord) {
 	}
 
 	return
-}
-
-// func (obj *dataRecord) String() string {
-// 	buffer := new(bytes.Buffer)
-// 	writer := bufio.NewWriter(buffer)
-
-// 	//[new Date(2314, 2, 16), {"": [24045, 12374]}],
-
-// 	writer.WriteString("[")
-// 	writer.WriteString(fmt.Sprintf("new Date(%s)", obj.dateTime.Format("2006, 01, 02, 15, 04, 05")))
-// 	for _, point := range obj.points {
-// 		writer.WriteString(fmt.Sprintf(", %g", point))
-// 	}
-// 	writer.WriteString("]")
-
-// 	writer.Flush()
-// 	return buffer.String()
-// }
-
-func (obj *dataRecord) Columns() int {
-	return len(obj.points)
 }

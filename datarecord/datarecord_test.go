@@ -94,11 +94,11 @@ func Test_dataReader_GetColumns(t *testing.T) {
 	}{
 		{
 			"test 1", dataReader{columnNames: map[string]void{"first": {}, "second": {}}, points: 3},
-			[]string{"first1", "first2", "first3", "second1", "second2", "second3"},
+			[]string{"first 1", "first 2", "first 3", "second 1", "second 2", "second 3"},
 		},
 		{
 			"test 2", dataReader{columnNames: map[string]void{}, points: 3},
-			[]string{"Column1", "Column2", "Column3"},
+			[]string{"Column 1", "Column 2", "Column 3"},
 		},
 	}
 	for _, tt := range tests {
