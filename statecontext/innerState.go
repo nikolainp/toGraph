@@ -16,7 +16,6 @@ func initState() *state {
 	obj.ctx, obj.cancel = context.WithCancel(context.Background())
 
 	signal.Notify(obj.signChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	go listenSignal()
 
 	return obj
 }

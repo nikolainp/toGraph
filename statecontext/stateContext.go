@@ -25,6 +25,7 @@ var innerState *state = nil
 func InitState() {
 	once.Do(func() {
 		innerState = initState()
+		go listenSignal()
 	})
 }
 
