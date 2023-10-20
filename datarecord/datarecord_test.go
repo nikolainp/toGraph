@@ -122,6 +122,7 @@ func Test_dataReader_ReadDataRecord(t *testing.T) {
 			dateColumn:  1,
 			dateFormat:  "20060102150405",
 			pivotColumn: 0,
+			delimiter:   []byte{' '},
 
 			points: 3,
 			data:   dataReaderData{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local): {"": []float32{1, 2, 3}}},
@@ -137,6 +138,7 @@ func Test_dataReader_ReadDataRecord(t *testing.T) {
 			got.dateColumn = tt.want.dateColumn
 			got.dateFormat = tt.want.dateFormat
 			got.pivotColumn = tt.want.pivotColumn
+			got.delimiter = tt.want.delimiter
 
 			got.ReadDataRecord(tt.data)
 			if diff := deep.Equal(got, tt.want); diff != nil {
