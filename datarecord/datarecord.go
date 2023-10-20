@@ -17,6 +17,7 @@ type dataReader struct {
 	dateFormat  string
 	dateColumn  int
 	pivotColumn int
+	delimiter   []byte
 
 	columnNames map[string]void
 	points      int
@@ -60,6 +61,11 @@ func (obj *dataReader) WithPivotColumn(column int) *dataReader {
 	obj.pivotColumn = column
 	return obj
 }
+
+func (obj *dataReader) WithDelimiter(delimiter string) *dataReader {
+	obj.delimiter = []byte(delimiter)
+	return obj
+} 
 
 func (obj *dataReader) ReadDataRecord(data string) {
 	record := obj.getDataRecord(data)
@@ -158,7 +164,14 @@ func (obj *dataReader) getColumnNames() []string {
 
 func (obj *dataReader) getDataRecord(data string) (record dataRecord) {
 	scan := bufio.NewScanner(strings.NewReader(data))
-	scan.Split(bufio.ScanWords)
+
+	onDelimiter := func(data []byte, atEOF bool) (advance int, token []byte, err error) {
+		if i := bytes.Index(data, obj.delimiter); i >= 0 {
+			return i + len(obj.delimiter), data[:i], nil
+		}
+		return 0, data, bufio.ErrFinalToken
+	}
+	scan.Split(onDelimiter) //bufio.ScanWords
 
 	record.points = make([]float32, 0, 5)
 

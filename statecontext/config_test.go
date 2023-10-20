@@ -19,29 +19,34 @@ func Test_readCommandLineArguments(t *testing.T) {
 			want{Configuration{
 				DateFormat: "YYYYMMDDHHmmSS",
 				DateColumn: 1,
+				Delimiter: " ",
 				printUsage: false}, errEmptyArgumentList}},
 		{"test 1", []string{"programname"},
 			want{Configuration{
 				DateFormat:  "YYYYMMDDHHmmSS",
 				DateColumn:  1,
+				Delimiter: " ",
 				programName: "programname",
 				printUsage:  true}, nil}},
 		{"help", []string{"programname", "-h"},
 			want{Configuration{
 				DateFormat:  "YYYYMMDDHHmmSS",
 				DateColumn:  1,
+				Delimiter: " ",
 				programName: "programname",
 				printUsage:  true}, nil}},
 		{"dateFormat", []string{"programname", "-t", "YYMMDDHHmm"},
 			want{Configuration{
 				DateFormat:  "YYMMDDHHmm",
 				DateColumn:  1,
+				Delimiter: " ",
 				programName: "programname",
 				printUsage:  true}, nil}},
 		{"dateColumn", []string{"programname", "-tc", "2"},
 			want{Configuration{
 				DateFormat:  "YYYYMMDDHHmmSS",
 				DateColumn:  2,
+				Delimiter: " ",
 				programName: "programname",
 				printUsage:  true}, nil}},
 		{"test 2", []string{"programname", "what"},
@@ -49,18 +54,21 @@ func Test_readCommandLineArguments(t *testing.T) {
 				InputFiles:  []string{"what"},
 				DateFormat:  "YYYYMMDDHHmmSS",
 				DateColumn:  1,
+				Delimiter: " ",
 				programName: "programname"}, nil}},
 		{"test 3", []string{"programname", "what", "where"},
 			want{Configuration{
 				InputFiles:  []string{"what", "where"},
 				DateFormat:  "YYYYMMDDHHmmSS",
 				DateColumn:  1,
+				Delimiter: " ",
 				programName: "programname"}, nil}},
 		{"test 4", []string{"programname", "newLine", "what", "where"},
 			want{Configuration{
 				InputFiles:  []string{"newLine", "what", "where"},
 				DateFormat:  "YYYYMMDDHHmmSS",
 				DateColumn:  1,
+				Delimiter: " ",
 				programName: "programname"}, nil}},
 	}
 	for _, tt := range tests {

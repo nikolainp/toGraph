@@ -12,6 +12,7 @@ func TestGetDataRecord(t *testing.T) {
 	var reader dataReader
 	reader.dateFormat = "20060102150405"
 	reader.dateColumn = 1
+	reader.delimiter = []byte{' '}
 
 	type args struct {
 		data string
@@ -40,6 +41,7 @@ func TestGetDataRecordPivot(t *testing.T) {
 	reader.dateFormat = "20060102150405"
 	reader.dateColumn = 1
 	reader.pivotColumn = 2
+	reader.delimiter = []byte{' '}
 
 	type args struct {
 		data string

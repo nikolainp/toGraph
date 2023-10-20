@@ -17,9 +17,9 @@ var checkErr = func(err error) {
 	}
 }
 
-// TODO: truncate file
 // TODO: delimiter
 // TODO: column names
+// TODO: graph name + output file name
 
 func main() {
 	state.InitState()
@@ -49,6 +49,7 @@ func processFile(sIn io.Reader, sOut io.Writer, config state.Configuration) erro
 	reader.WithDateFormat(config.DateFormat)
 	reader.WithDateColumn(config.DateColumn)
 	reader.WithPivotColumn(config.PivotColumn)
+	reader.WithDelimiter(config.Delimiter)
 
 	dataGraph, err := template.New("dataGraph").Parse(graphTemplate)
 	checkErr(err)
