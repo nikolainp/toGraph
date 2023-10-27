@@ -19,7 +19,7 @@ var checkErr = func(err error) {
 
 // TODO: column names
 // TODO: graph name + output file name
-// TODO: display columns
+// TODO: statistic by columns
 
 func main() {
 	state.InitState()

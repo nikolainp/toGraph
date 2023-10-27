@@ -63,6 +63,16 @@ const graphTemplate = `
         };
 
         chart.draw(data, options);
+        setColumnColors();
+      }
+
+      function setColumnColors() {
+        var legends = document.getElementsByClassName("legend-dot");
+        var columns = document.getElementsByClassName("columnLabel");
+
+        for (let i = 0; i < columns.length; i++) {
+            columns[i].style.color = legends[i].style.backgroundColor;
+        }
       }
 
       function onChangeColumn(element) {
@@ -81,7 +91,7 @@ const graphTemplate = `
       <div class="dropdown-content">
         {{range $i, $column := .Columns -}}
           <input type="checkbox" name="{{$column}}" value="{{$i}}" onchange="onChangeColumn(this)" checked>
-            <label for="{{$column}}">{{$column}}</label><br>
+            <label class="columnLabel" for="{{$column}}">{{$column}}</label><br>
         {{end}}
       </div>
     </div>
