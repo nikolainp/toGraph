@@ -87,7 +87,7 @@ const graphTemplate = `
 
   <body>
     <div class="dropdown" style='height: 30px;'>
-      <span>My page</span>
+      <span>{{.Title}}</span>
       <div class="dropdown-content">
         {{range $i, $column := .Columns -}}
           <input type="checkbox" name="{{$column}}" value="{{$i}}" onchange="onChangeColumn(this)" checked>

@@ -5,6 +5,8 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
+	"strings"
 	"text/template"
 
 	datarecord "github.com/nikolainp/toGraph/datarecord"
@@ -34,15 +36,25 @@ func run() {
 		inputFile, err := os.Open(fileName)
 		checkErr(err)
 
-		outputFile, err := os.OpenFile(fileName+".html", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0660)
+		outFilePath, outFileName := getOutFileName(fileName)
+
+		outputFile, err := os.OpenFile(outFilePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0660)
 		checkErr(err)
 
 		log.Printf("file being processed: %s", fileName)
-		processFile(inputFile, outputFile, state.Config())
+		processFile(inputFile, outputFile, state.Config(), outFileName)
 	}
 }
 
-func processFile(sIn io.Reader, sOut io.Writer, config state.Configuration) error {
+func getOutFileName(fileName string) (outFilePath string, outFileName string) {
+	outFilePath = filepath.Dir(fileName)
+	outFileName = filepath.Base(fileName)
+	outFileName = strings.TrimSuffix(outFileName, filepath.Ext(outFileName))
+
+	return filepath.Join(outFilePath, outFileName+".html"), outFileName
+}
+
+func processFile(sIn io.Reader, sOut io.Writer, config state.Configuration, title string) error {
 
 	scanner := bufio.NewScanner(sIn)
 	reader := datarecord.GetDataReader()
@@ -63,7 +75,7 @@ func processFile(sIn io.Reader, sOut io.Writer, config state.Configuration) erro
 		Columns  []string
 		DataRows []string
 	}{
-		Title:    "My page",
+		Title:    title,
 		Columns:  reader.GetColumns(),
 		DataRows: reader.GetDataRows(),
 	}
