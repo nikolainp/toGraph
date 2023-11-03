@@ -169,11 +169,11 @@ func Test_dataColumns_GetColumns(t *testing.T) {
 		want []string
 	}{
 		{
-			"test 1", dataColumns{statistic: map[string][]columnStatistic{"first": []columnStatistic{{}, {}, {}}, "second": []columnStatistic{{}, {}, {}}}},
+			"test 1", dataColumns{statistic: map[string][]columnStatistic{"first": {{}, {}, {}}, "second": {{}, {}, {}}}},
 			[]string{"first", "second"},
 		},
 		{
-			"test 2", dataColumns{statistic: map[string][]columnStatistic{"": []columnStatistic{{}, {}, {}}}},
+			"test 2", dataColumns{statistic: map[string][]columnStatistic{"": {{}, {}, {}}}},
 			[]string{""},
 		},
 	}
