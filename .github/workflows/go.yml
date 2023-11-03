@@ -24,7 +24,7 @@ jobs:
     - name: StaticCheck
       uses: dominikh/staticcheck-action@v1.2.0
       with:
-        version: "2022.1.1" 
+        version: latest
 
     - name: Build
       run: go build -v ./...
