@@ -11,17 +11,36 @@ import (
 	"time"
 )
 
-type void struct{}
+type ColumnStatistic struct {
+	Name    string
+	Minimum float32
+	Maximum float32
+	Average float32
+}
+
 type dataReaderData map[time.Time]map[string][]float32
+
+type columnStatistic struct {
+	minimum float32
+	maximum float32
+	sum     float32
+	count   int
+}
+
+type dataColumns struct {
+	names     []string
+	statistic map[string][]columnStatistic
+}
+
 type dataReader struct {
 	dateFormat  string
 	dateColumn  int
 	pivotColumn int
 	delimiter   []byte
 
-	columnNames map[string]void
-	points      int
-	data        dataReaderData
+	columns dataColumns
+	points  int
+	data    dataReaderData
 }
 
 type dataRecord struct {
@@ -41,7 +60,7 @@ var checkErr = func(err error) {
 
 func GetDataReader() (reader dataReader) {
 
-	reader.columnNames = make(map[string]void)
+	reader.columns.initialize()
 	reader.data = make(dataReaderData)
 
 	return
@@ -65,14 +84,12 @@ func (obj *dataReader) WithPivotColumn(column int) *dataReader {
 func (obj *dataReader) WithDelimiter(delimiter string) *dataReader {
 	obj.delimiter = []byte(delimiter)
 	return obj
-} 
+}
 
 func (obj *dataReader) ReadDataRecord(data string) {
 	record := obj.getDataRecord(data)
 
-	if len(record.pivot) != 0 {
-		obj.columnNames[record.pivot] = void{}
-	}
+	obj.columns.addDataRecord(record)
 	if obj.points < len(record.points) {
 		obj.points = len(record.points)
 	}
@@ -84,26 +101,15 @@ func (obj *dataReader) ReadDataRecord(data string) {
 	obj.data[record.dateTime][record.pivot] = record.points
 }
 
-func (obj *dataReader) GetColumns() []string {
-
-	columns := make([]string, 0, 10)
-	for _, name := range obj.getColumnNames() {
-		if name == "" {
-			name = "Column"
-		}
-		for i := 1; i < obj.points+1; i++ {
-			columns = append(columns, fmt.Sprintf("%s %d", name, i))
-		}
-	}
-
-	return columns
+func (obj *dataReader) GetColumns() []ColumnStatistic {
+	return obj.columns.getColumnStatistics()
 }
 
 func (obj *dataReader) GetDataRows() []string {
 
 	rows := make([]string, 0, 10)
 
-	columns := obj.getColumnNames()
+	columns := obj.columns.getColumnNames()
 
 	buffer := new(bytes.Buffer)
 	writer := bufio.NewWriter(buffer)
@@ -144,12 +150,31 @@ func (obj *dataReader) GetDataRows() []string {
 
 ///////////////////////////////////////////////////////
 
-func (obj *dataReader) getColumnNames() []string {
+///////////////////////////////////////////////////////
+// dataColumns
+
+func (obj *dataColumns) initialize() {
+	obj.statistic = make(map[string][]columnStatistic)
+}
+
+func (obj *dataColumns) addDataRecord(data dataRecord) {
+	if _, ok := obj.statistic[data.pivot]; !ok {
+		obj.statistic[data.pivot] = make([]columnStatistic, len(data.points))
+	}
+
+	element := obj.statistic[data.pivot]
+	for i, dataPoint := range data.points {
+		element[i].addDataPoint(dataPoint)
+	}
+
+}
+
+func (obj *dataColumns) getColumnNames() []string {
 	columns := make([]string, 0, 10)
-	if len(obj.columnNames) == 0 {
+	if len(obj.statistic) == 0 {
 		columns = append(columns, "")
 	} else {
-		for name := range obj.columnNames {
+		for name := range obj.statistic {
 			columns = append(columns, name)
 		}
 	}
@@ -157,6 +182,41 @@ func (obj *dataReader) getColumnNames() []string {
 	sort.Strings(columns)
 
 	return columns
+}
+
+func (obj *dataColumns) getColumnStatistics() []ColumnStatistic {
+	columns := make([]ColumnStatistic, 0)
+
+	for name, pivotData := range obj.statistic {
+		if name == "" {
+			name = "Column"
+		}
+		for i, data := range pivotData {
+			columns = append(columns, ColumnStatistic{
+				Name:    fmt.Sprintf("%s %d", name, i+1),
+				Minimum: data.minimum,
+				Maximum: data.maximum,
+				Average: data.sum / float32(data.count),
+			})
+		}
+	}
+
+	return columns
+}
+
+///////////////////////////////////////////////////////
+// columnStatistic
+
+func (obj *columnStatistic) addDataPoint(data float32) {
+	if obj.count == 0 {
+		obj.minimum = data
+		obj.maximum = data
+	} else {
+		obj.minimum = min(obj.minimum, data)
+		obj.maximum = max(obj.maximum, data)
+	}
+	obj.sum += data
+	obj.count++
 }
 
 ///////////////////////////////////////////////////////

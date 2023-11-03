@@ -95,11 +95,11 @@ func Test_dataReader_GetColumns(t *testing.T) {
 		want []string
 	}{
 		{
-			"test 1", dataReader{columnNames: map[string]void{"first": {}, "second": {}}, points: 3},
+			"test 1", dataReader{columns: dataColumns{statistic: map[string][]columnStatistic{"first": {}, "second": {}}}, points: 3},
 			[]string{"first 1", "first 2", "first 3", "second 1", "second 2", "second 3"},
 		},
 		{
-			"test 2", dataReader{columnNames: map[string]void{}, points: 3},
+			"test 2", dataReader{columns: dataColumns{}, points: 3},
 			[]string{"Column 1", "Column 2", "Column 3"},
 		},
 	}
@@ -144,6 +144,70 @@ func Test_dataReader_ReadDataRecord(t *testing.T) {
 			if diff := deep.Equal(got, tt.want); diff != nil {
 				t.Errorf("GetDataRecord():\n got  %v\n want %v", got, tt.want)
 				t.Errorf("compare failed: %v", diff)
+			}
+		})
+	}
+}
+
+func Test_dataColumns_addDataRecord(t *testing.T) {
+	tests := []struct {
+		name string
+		obj  dataColumns
+		data dataRecord
+		want dataColumns
+	}{
+		{
+			"test 1",
+			dataColumns{names: []string{}, statistic: map[string][]columnStatistic{}},
+			dataRecord{time.Date(2012, time.October, 15, 10, 1, 0, 0, time.Local), "first", []float32{1, 2, 3}},
+			dataColumns{names: []string{}, statistic: map[string][]columnStatistic{"first": {{1, 1, 1, 1}, {2, 2, 2, 1}, {3, 3, 3, 1}}}},
+		},
+		{
+			"test 2",
+			dataColumns{names: []string{}, statistic: map[string][]columnStatistic{}},
+			dataRecord{time.Date(2012, time.October, 15, 10, 1, 0, 0, time.Local), "", []float32{1, 2, 3}},
+			dataColumns{names: []string{}, statistic: map[string][]columnStatistic{"": {{1, 1, 1, 1}, {2, 2, 2, 1}, {3, 3, 3, 1}}}},
+		},
+		{
+			"test 3",
+			dataColumns{names: []string{}, statistic: map[string][]columnStatistic{"first": {{1, 1, 1, 1}, {2, 2, 2, 1}, {3, 3, 3, 1}}}},
+			dataRecord{time.Date(2012, time.October, 15, 10, 1, 0, 0, time.Local), "first", []float32{10, -2, 3}},
+			dataColumns{names: []string{}, statistic: map[string][]columnStatistic{"first": {{1, 10, 11, 2}, {-2, 2, 0, 2}, {3, 3, 6, 2}}}},
+		},
+	}
+	for _, tt := range tests {
+
+		t.Run(tt.name, func(t *testing.T) {
+			//tt.obj.initialize()
+			tt.obj.addDataRecord(tt.data)
+			if !reflect.DeepEqual(tt.obj, tt.want) {
+				t.Errorf("GetDataRecord():\n got  %v\n want %v", tt.obj, tt.want)
+			}
+		})
+	}
+}
+
+func Test_dataColumns_getColumnStatistics(t *testing.T) {
+	tests := []struct {
+		name string
+		obj  dataColumns
+		want []ColumnStatistic
+	}{
+		{
+			"test 1",
+			dataColumns{names: []string{}, statistic: map[string][]columnStatistic{"first": {{1, 1, 1, 1}, {2, 2, 2, 1}, {3, 3, 3, 1}}}},
+			[]ColumnStatistic{{"first 1", 1, 1, 1}, {"first 2", 2, 2, 2}, {"first 3", 3, 3, 3}},
+		},
+		{
+			"test 2",
+			dataColumns{names: []string{}, statistic: map[string][]columnStatistic{"": {{1, 1, 1, 1}, {2, 2, 2, 1}, {3, 3, 3, 1}}}},
+			[]ColumnStatistic{{"Column 1", 1, 1, 1}, {"Column 2", 2, 2, 2}, {"Column 3", 3, 3, 3}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.obj.getColumnStatistics(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("dataColumns.getColumnStatistics() = %v, want %v", got, tt.want)
 			}
 		})
 	}

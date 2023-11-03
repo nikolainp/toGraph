@@ -42,7 +42,7 @@ const graphTemplate = `
         var data = new google.visualization.DataTable();
         data.addColumn('date', 'Date');
         {{range $column := .Columns -}}
-        data.addColumn('number', '{{$column}}');
+        data.addColumn('number', '{{$column.Name}}');
         {{end}}
 		    // [new Date(2314, 2, 16), 24045, 12374],
         
@@ -89,10 +89,18 @@ const graphTemplate = `
     <div class="dropdown" style='height: 30px;'>
       <span>{{.Title}}</span>
       <div class="dropdown-content">
-        {{range $i, $column := .Columns -}}
-          <input type="checkbox" name="{{$column}}" value="{{$i}}" onchange="onChangeColumn(this)" checked>
-            <label class="columnLabel" for="{{$column}}">{{$column}}</label><br>
-        {{end}}
+        <table>
+          <tr><td>&nbsp;</td><td>name</td><td>minimum</td><td>maximum</td><td>average</td></tr>
+          {{range $i, $column := .Columns -}}
+          <tr>
+            <td><input type="checkbox" name="{{$column.Name}}" value="{{$i}}" onchange="onChangeColumn(this)" checked></td>
+            <td nowrap><label class="columnLabel" for="{{$column.Name}}">{{$column.Name}}</label></td>
+            <td nowrap>{{$column.Minimum}}</td>
+            <td nowrap>{{$column.Maximum}}</td>
+            <td nowrap>{{$column.Average}}</td>
+          </tr>
+          {{end}}
+        </table>
       </div>
     </div>
 

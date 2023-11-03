@@ -20,7 +20,6 @@ var checkErr = func(err error) {
 }
 
 // TODO: column names
-// TODO: graph name + output file name
 // TODO: statistic by columns
 
 func main() {
@@ -72,7 +71,7 @@ func processFile(sIn io.Reader, sOut io.Writer, config state.Configuration, titl
 
 	data := struct {
 		Title    string
-		Columns  []string
+		Columns  []datarecord.ColumnStatistic
 		DataRows []string
 	}{
 		Title:    title,
