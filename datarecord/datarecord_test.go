@@ -88,30 +88,6 @@ func TestGetDataRecordPivot(t *testing.T) {
 // 	}
 // }
 
-func Test_dataReader_GetColumns(t *testing.T) {
-	tests := []struct {
-		name string
-		obj  dataReader
-		want []string
-	}{
-		{
-			"test 1", dataReader{columns: dataColumns{statistic: map[string][]columnStatistic{"first": {}, "second": {}}}, points: 3},
-			[]string{"first 1", "first 2", "first 3", "second 1", "second 2", "second 3"},
-		},
-		{
-			"test 2", dataReader{columns: dataColumns{}, points: 3},
-			[]string{"Column 1", "Column 2", "Column 3"},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.obj.GetColumns(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("dataReader.GetColumns() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func Test_dataReader_ReadDataRecord(t *testing.T) {
 	tests := []struct {
 		name string
@@ -182,6 +158,29 @@ func Test_dataColumns_addDataRecord(t *testing.T) {
 			tt.obj.addDataRecord(tt.data)
 			if !reflect.DeepEqual(tt.obj, tt.want) {
 				t.Errorf("GetDataRecord():\n got  %v\n want %v", tt.obj, tt.want)
+			}
+		})
+	}
+}
+func Test_dataColumns_GetColumns(t *testing.T) {
+	tests := []struct {
+		name string
+		obj  dataColumns
+		want []string
+	}{
+		{
+			"test 1", dataColumns{statistic: map[string][]columnStatistic{"first": []columnStatistic{{}, {}, {}}, "second": []columnStatistic{{}, {}, {}}}},
+			[]string{"first", "second"},
+		},
+		{
+			"test 2", dataColumns{statistic: map[string][]columnStatistic{"": []columnStatistic{{}, {}, {}}}},
+			[]string{""},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.obj.getColumnNames(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("dataReader.GetColumns() = %v, want %v", got, tt.want)
 			}
 		})
 	}
