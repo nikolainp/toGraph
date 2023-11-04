@@ -202,6 +202,11 @@ func Test_dataColumns_getColumnStatistics(t *testing.T) {
 			dataColumns{names: []string{}, statistic: map[string][]columnStatistic{"": {{1, 1, 1, 1}, {2, 2, 2, 1}, {3, 3, 3, 1}}}},
 			[]ColumnStatistic{{"Column 1", 1, 1, 1}, {"Column 2", 2, 2, 2}, {"Column 3", 3, 3, 3}},
 		},
+		{
+			"test 3",
+			dataColumns{names: []string{}, statistic: map[string][]columnStatistic{"first": {{1, 1, 1, 1}}}},
+			[]ColumnStatistic{{"first", 1, 1, 1}},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

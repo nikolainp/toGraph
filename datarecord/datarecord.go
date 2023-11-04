@@ -187,17 +187,25 @@ func (obj *dataColumns) getColumnNames() []string {
 func (obj *dataColumns) getColumnStatistics() []ColumnStatistic {
 	columns := make([]ColumnStatistic, 0)
 
+	getColumnStatistic := func (name string, data columnStatistic) ColumnStatistic{
+		return ColumnStatistic{
+			Name:    name,
+			Minimum: data.minimum,
+			Maximum: data.maximum,
+			Average: data.sum / float32(data.count),
+		}
+	}
+
 	for name, pivotData := range obj.statistic {
 		if name == "" {
 			name = "Column"
 		}
-		for i, data := range pivotData {
-			columns = append(columns, ColumnStatistic{
-				Name:    fmt.Sprintf("%s %d", name, i+1),
-				Minimum: data.minimum,
-				Maximum: data.maximum,
-				Average: data.sum / float32(data.count),
-			})
+		if len(pivotData) == 1 {
+			columns = append(columns, getColumnStatistic(name, pivotData[0]))
+		}else {
+			for i, data := range pivotData {
+				columns = append(columns, getColumnStatistic(fmt.Sprintf("%s %d", name, i+1), data))
+			}	
 		}
 	}
 
