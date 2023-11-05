@@ -31,18 +31,41 @@ func main() {
 
 func run() {
 
-	for _, fileName := range state.Config().InputFiles {
-		inputFile, err := os.Open(fileName)
-		checkErr(err)
-
-		outFilePath, outFileName := getOutFileName(fileName)
-
-		outputFile, err := os.OpenFile(outFilePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0660)
-		checkErr(err)
+	config := state.Config()
+	for _, fileName := range config.InputFiles {
+		inputFile := getInputStream(fileName)
+		outputFile, outName := getOutputStream(fileName, config)
 
 		log.Printf("file being processed: %s", fileName)
-		processFile(inputFile, outputFile, state.Config(), outFileName)
+		processFile(inputFile, outputFile, config, outName)
 	}
+}
+
+func getInputStream(fileName string) io.Reader {
+	if fileName == "" {
+		return os.Stdin
+	}
+
+	inputFile, err := os.Open(fileName)
+	checkErr(err)
+
+	return inputFile
+}
+
+func getOutputStream(fileName string, config state.Configuration) (io.Writer, string) {
+	var outputName string
+	var outputPath string
+
+	if len(config.OutputFile) == 0 {
+		outputPath, outputName = getOutFileName(fileName)
+	} else {
+		_, outputName = getOutFileName(config.OutputFile)
+		outputPath = config.OutputFile
+	}
+	outputFile, err := os.OpenFile(outputPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0660)
+	checkErr(err)
+
+	return outputFile, outputName
 }
 
 func getOutFileName(fileName string) (outFilePath string, outFileName string) {

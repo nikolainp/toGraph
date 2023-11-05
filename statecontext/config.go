@@ -10,12 +10,13 @@ import (
 var errEmptyArgumentList = fmt.Errorf("empty argument list")
 
 type Configuration struct {
-	InputFiles []string
-	DateFormat string
-	DateColumn int
-	PivotColumn int
-	Delimiter string
-	ColumnNames string
+	InputFiles              []string
+	OutputFile              string
+	DateFormat              string
+	DateColumn              int
+	PivotColumn             int
+	Delimiter               string
+	ColumnNames             string
 	IsColumnNamesInFirstRow bool
 
 	programName string
@@ -56,6 +57,7 @@ func covertDateFormat(dateFormat string) string {
 func readCommandLineArguments(config *Configuration, args []string) (fs *flag.FlagSet, err error) {
 	fs = flag.NewFlagSet("", flag.ContinueOnError)
 	fs.BoolVar(&config.printUsage, "h", false, "print usage")
+	fs.StringVar(&config.OutputFile, "o", "", "output file name")
 	fs.StringVar(&config.DateFormat, "t", "YYYYMMDDHHmmSS", "time field format (YYYY-MM-DDTHH:mm:SS.ssssss)")
 	fs.IntVar(&config.DateColumn, "tc", 1, "ordinal number of the column with time")
 	fs.IntVar(&config.PivotColumn, "pc", 0, "pivot column")
@@ -83,6 +85,10 @@ func readCommandLineArguments(config *Configuration, args []string) (fs *flag.Fl
 	case 0 < fs.NArg():
 		config.InputFiles = fs.Args()
 	default:
+		config.InputFiles = []string{""}
+	}
+
+	if len(config.OutputFile) != 0 && 1 < len(config.InputFiles) {
 		config.printUsage = true
 	}
 

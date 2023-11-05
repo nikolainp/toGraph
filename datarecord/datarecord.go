@@ -88,6 +88,10 @@ func (obj *dataReader) WithDelimiter(delimiter string) *dataReader {
 }
 
 func (obj *dataReader) WithColumnNames(data string) *dataReader {
+	if len(data) == 0 {
+		return obj
+	}
+
 	obj.columns.names = strings.Split(data, ",")
 	for i := range obj.columns.names {
 		obj.columns.names[i] = strings.TrimSpace(obj.columns.names[i])
