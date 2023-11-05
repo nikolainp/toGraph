@@ -61,6 +61,8 @@ func processFile(sIn io.Reader, sOut io.Writer, config state.Configuration, titl
 	reader.WithDateColumn(config.DateColumn)
 	reader.WithPivotColumn(config.PivotColumn)
 	reader.WithDelimiter(config.Delimiter)
+	reader.WithColumnNames(config.ColumnNames)
+	reader.WithColumnNamesInFirstRow(config.IsColumnNamesInFirstRow)
 
 	dataGraph, err := template.New("dataGraph").Parse(graphTemplate)
 	checkErr(err)

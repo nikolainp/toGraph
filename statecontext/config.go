@@ -15,6 +15,8 @@ type Configuration struct {
 	DateColumn int
 	PivotColumn int
 	Delimiter string
+	ColumnNames string
+	IsColumnNamesInFirstRow bool
 
 	programName string
 	printUsage  bool
@@ -58,6 +60,8 @@ func readCommandLineArguments(config *Configuration, args []string) (fs *flag.Fl
 	fs.IntVar(&config.DateColumn, "tc", 1, "ordinal number of the column with time")
 	fs.IntVar(&config.PivotColumn, "pc", 0, "pivot column")
 	fs.StringVar(&config.Delimiter, "d", " ", "field separator")
+	fs.StringVar(&config.ColumnNames, "columns", "", "column names, separated by commas.")
+	fs.BoolVar(&config.IsColumnNamesInFirstRow, "cf", false, "column names in the first row of the data file")
 
 	if len(args) == 0 {
 		return nil, errEmptyArgumentList
@@ -65,6 +69,12 @@ func readCommandLineArguments(config *Configuration, args []string) (fs *flag.Fl
 
 	config.programName = args[0]
 	if err = fs.Parse(args[1:]); err != nil {
+		config.printUsage = true
+		return
+	}
+
+	config.ColumnNames = strings.TrimSpace(config.ColumnNames)
+	if config.IsColumnNamesInFirstRow && 0 < len(config.ColumnNames) {
 		config.printUsage = true
 		return
 	}

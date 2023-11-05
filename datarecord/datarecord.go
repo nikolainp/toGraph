@@ -33,10 +33,11 @@ type dataColumns struct {
 }
 
 type dataReader struct {
-	dateFormat  string
-	dateColumn  int
-	pivotColumn int
-	delimiter   []byte
+	dateFormat              string
+	dateColumn              int
+	pivotColumn             int
+	delimiter               []byte
+	isColumnNamesInFirstRow bool
 
 	columns dataColumns
 	points  int
@@ -86,7 +87,28 @@ func (obj *dataReader) WithDelimiter(delimiter string) *dataReader {
 	return obj
 }
 
+func (obj *dataReader) WithColumnNames(data string) *dataReader {
+	obj.columns.names = strings.Split(data, ",")
+	for i := range obj.columns.names {
+		obj.columns.names[i] = strings.TrimSpace(obj.columns.names[i])
+	}
+
+	return obj
+}
+
+func (obj *dataReader) WithColumnNamesInFirstRow(data bool) *dataReader {
+	obj.isColumnNamesInFirstRow = data
+	return obj
+}
+
 func (obj *dataReader) ReadDataRecord(data string) {
+
+	if obj.isColumnNamesInFirstRow {
+		obj.isColumnNamesInFirstRow = false
+		obj.columns.names = strings.Split(data, string(obj.delimiter))
+		return
+	}
+
 	record := obj.getDataRecord(data)
 
 	obj.columns.addDataRecord(record)
@@ -109,7 +131,7 @@ func (obj *dataReader) GetDataRows() []string {
 
 	rows := make([]string, 0, 10)
 
-	columns := obj.columns.getColumnNames()
+	columns := obj.columns.getPivotColumnNames()
 
 	buffer := new(bytes.Buffer)
 	writer := bufio.NewWriter(buffer)
@@ -169,7 +191,7 @@ func (obj *dataColumns) addDataRecord(data dataRecord) {
 
 }
 
-func (obj *dataColumns) getColumnNames() []string {
+func (obj *dataColumns) getPivotColumnNames() []string {
 	columns := make([]string, 0, 10)
 	if len(obj.statistic) == 0 {
 		columns = append(columns, "")
@@ -187,7 +209,7 @@ func (obj *dataColumns) getColumnNames() []string {
 func (obj *dataColumns) getColumnStatistics() []ColumnStatistic {
 	columns := make([]ColumnStatistic, 0)
 
-	getColumnStatistic := func (name string, data columnStatistic) ColumnStatistic{
+	getColumnStatistic := func(name string, data columnStatistic) ColumnStatistic {
 		return ColumnStatistic{
 			Name:    name,
 			Minimum: data.minimum,
@@ -197,15 +219,24 @@ func (obj *dataColumns) getColumnStatistics() []ColumnStatistic {
 	}
 
 	for name, pivotData := range obj.statistic {
-		if name == "" {
-			name = "Column"
-		}
 		if len(pivotData) == 1 {
 			columns = append(columns, getColumnStatistic(name, pivotData[0]))
-		}else {
+		} else {
 			for i, data := range pivotData {
-				columns = append(columns, getColumnStatistic(fmt.Sprintf("%s %d", name, i+1), data))
-			}	
+				var columnName string
+
+				switch {
+				case i < len(obj.names) && name == "":
+					columnName = obj.names[i]
+				case i < len(obj.names) && name != "":
+					columnName = fmt.Sprintf("%s %s", name, obj.names[i])
+				case name == "":
+					columnName = fmt.Sprintf("Column %d", i+1)
+				default:
+					columnName = fmt.Sprintf("%s %d", name, i+1)
+				}
+				columns = append(columns, getColumnStatistic(columnName, data))
+			}
 		}
 	}
 

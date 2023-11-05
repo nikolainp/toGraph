@@ -65,29 +65,6 @@ func TestGetDataRecordPivot(t *testing.T) {
 	}
 }
 
-// func Test_dataRecord_String(t *testing.T) {
-// 	tests := []struct {
-// 		name string
-// 		obj  dataRecord
-// 		want string
-// 	}{
-// 		{"test 1", dataRecord{time.Date(2012, time.October, 15, 10, 1, 0, 0, time.Local), "", []float32{1, 2, 3}},
-// 			`[new Date(2012, 10, 15, 10, 01, 00), 1, 2, 3]`},
-// 		{"test 2", dataRecord{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local), "", []float32{2, 3, 4}},
-// 			`[new Date(2012, 10, 15, 10, 01, 30), 2, 3, 4]`},
-// 		{"test 3", dataRecord{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local), "1",
-// 			[]float32{2, 3, 4}},
-// 			`[new Date(2012, 10, 15, 10, 01, 30), 2, 3, 4]`},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			if got := tt.obj.Points(); got != tt.want {
-// 				t.Errorf("dataRecord.String() = %v, want %v", got, tt.want)
-// 			}
-// 		})
-// 	}
-// }
-
 func Test_dataReader_ReadDataRecord(t *testing.T) {
 	tests := []struct {
 		name string
@@ -179,7 +156,7 @@ func Test_dataColumns_GetColumns(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.obj.getColumnNames(); !reflect.DeepEqual(got, tt.want) {
+			if got := tt.obj.getPivotColumnNames(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("dataReader.GetColumns() = %v, want %v", got, tt.want)
 			}
 		})
@@ -206,6 +183,16 @@ func Test_dataColumns_getColumnStatistics(t *testing.T) {
 			"test 3",
 			dataColumns{names: []string{}, statistic: map[string][]columnStatistic{"first": {{1, 1, 1, 1}}}},
 			[]ColumnStatistic{{"first", 1, 1, 1}},
+		},
+		{
+			"test 4",
+			dataColumns{names: []string{"A","B","C"}, statistic: map[string][]columnStatistic{"": {{1, 1, 1, 1}, {2, 2, 2, 1}, {3, 3, 3, 1}}}},
+			[]ColumnStatistic{{"A", 1, 1, 1}, {"B", 2, 2, 2}, {"C", 3, 3, 3}},
+		},
+		{
+			"test 5",
+			dataColumns{names: []string{"A","B","C"}, statistic: map[string][]columnStatistic{"first": {{1, 1, 1, 1}, {2, 2, 2, 1}, {3, 3, 3, 1}}}},
+			[]ColumnStatistic{{"first A", 1, 1, 1}, {"first B", 2, 2, 2}, {"first C", 3, 3, 3}},
 		},
 	}
 	for _, tt := range tests {
