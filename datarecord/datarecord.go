@@ -156,8 +156,8 @@ func (obj *dataReader) GetDataRows() []string {
 			points, ok := data[columnName]
 
 			if ok {
-				for _, point := range points {
-					writer.WriteString(fmt.Sprintf(", %g", point))
+				for i := range points {
+					writer.WriteString(fmt.Sprintf(", %g", points[i]))
 				}
 			} else {
 				writer.WriteString(blankPoints)
