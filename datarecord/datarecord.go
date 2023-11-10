@@ -222,7 +222,11 @@ func (obj *dataColumns) getColumnStatistics() []ColumnStatistic {
 		}
 	}
 
-	for name, pivotData := range obj.statistic {
+	columnNames := obj.getPivotColumnNames()
+	for i := range columnNames {
+		name := columnNames[i]
+		pivotData := obj.statistic[name]
+
 		if len(pivotData) == 1 {
 			columns = append(columns, getColumnStatistic(name, pivotData[0]))
 		} else {
