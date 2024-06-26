@@ -39,6 +39,20 @@ const graphTemplate = `
       let chart;
 
       function drawChart() {
+        var columns = new google.visualization.DataTable();
+        columns.addColumn('string', 'Title');
+        columns.addColumn('number', 'Minimum');
+        columns.addColumn('number', 'Maximum');
+        columns.addColumn('number', 'Average');
+        columns.addColumn('boolean', 'Show');
+
+        columns.addRows([
+        {{range $i, $column := .Columns -}}
+          ['{{$column.Name}}', {{$column.Minimum}}, {{$column.Maximum}}, {{$column.Average}}, true],
+        {{end}}
+        ]);
+
+
         var data = new google.visualization.DataTable();
         data.addColumn('date', 'Date');
         {{range $column := .Columns -}}
@@ -56,51 +70,51 @@ const graphTemplate = `
 			{{- end}}
         ]);
 
+        table = new google.visualization.Table(document.getElementById('table_div'));
         chart = new google.visualization.AnnotationChart(document.getElementById('chart_div'));
 
-        var options = {
-          displayAnnotations: true
-        };
+        chart.draw(data, {displayAnnotations: true});
+        setColumnColors(columns);
+        drawTable(table, columns)
 
-        chart.draw(data, options);
-        setColumnColors();
+        google.visualization.events.addListener(table, 'select', function() {
+          var row = table.getSelection()[0].row;
+          var value = columns.getValue(row, 4);
+
+          value = !value;
+          columns.setValue(row, 4, value);
+          if (value) {
+              chart.showDataColumns(row)
+          } else {
+              chart.hideDataColumns(row)
+          }
+
+          drawTable(table, columns);
+        });
+
       }
 
-      function setColumnColors() {
+      function setColumnColors(table) {
         var legends = document.getElementsByClassName("legend-dot");
-        var columns = document.getElementsByClassName("columnLabel");
 
-        for (let i = 0; i < columns.length; i++) {
-            columns[i].style.color = legends[i].style.backgroundColor;
+        for (let i = 0; i < legends.length; i++) {
+            table.setProperties(i, 0, {'style': 'color: ' + legends[i].style.backgroundColor +'; white-space: nowrap;'});
+            table.setProperties(i, 4, {'style': 'color: ' + legends[i].style.backgroundColor +';'});
         }
       }
 
-      function onChangeColumn(element) {
-        if (element.checked) {
-            chart.showDataColumns(element.value)
-        } else {
-            chart.hideDataColumns(element.value)
-        }
+      function drawTable(table, data) {
+        table.draw(data, {showRowNumber: true, allowHtml: true, width: '100%', height: '100%'});
       }
-    </script>
+
+      </script>
   </head>
 
   <body>
     <div class="dropdown" style='height: 30px;'>
       <span>{{.Title}}</span>
       <div class="dropdown-content">
-        <table>
-          <tr><td>&nbsp;</td><td>name</td><td>minimum</td><td>maximum</td><td>average</td></tr>
-          {{range $i, $column := .Columns -}}
-          <tr>
-            <td><input type="checkbox" name="{{$column.Name}}" value="{{$i}}" onchange="onChangeColumn(this)" checked></td>
-            <td nowrap><label class="columnLabel" for="{{$column.Name}}">{{$column.Name}}</label></td>
-            <td nowrap>{{$column.Minimum}}</td>
-            <td nowrap>{{$column.Maximum}}</td>
-            <td nowrap>{{$column.Average}}</td>
-          </tr>
-          {{end}}
-        </table>
+        <div id='table_div'></div>
       </div>
     </div>
 

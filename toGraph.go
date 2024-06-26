@@ -19,9 +19,6 @@ var checkErr = func(err error) {
 	}
 }
 
-// TODO: column names
-// TODO: statistic by columns
-
 func main() {
 	state.InitState()
 	state.Configure(os.Args)
