@@ -73,7 +73,7 @@ const graphTemplate = `
         table = new google.visualization.Table(document.getElementById('table_div'));
         chart = new google.visualization.AnnotationChart(document.getElementById('chart_div'));
 
-        chart.draw(data, {displayAnnotations: true});
+        chart.draw(data, {displayAnnotations: true, interpolateNulls: true, thickness: 5});
         setColumnColors(columns);
         drawTable(table, columns)
 
