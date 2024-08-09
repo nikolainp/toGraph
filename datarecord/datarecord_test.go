@@ -23,9 +23,9 @@ func TestGetDataRecord(t *testing.T) {
 		want dataRecord
 	}{
 		{"test 1", args{"20121015100100 1 2 3"},
-			dataRecord{time.Date(2012, time.October, 15, 10, 1, 0, 0, time.Local), "", []float32{1, 2, 3}}},
+			dataRecord{time.Date(2012, time.October, 15, 10, 1, 0, 0, time.Local), "", []dataPoint{{point: 1}, {point: 2}, {point: 3}}}},
 		{"test 2", args{"20121015100130 2 3 4"},
-			dataRecord{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local), "", []float32{2, 3, 4}}},
+			dataRecord{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local), "", []dataPoint{{point: 2}, {point: 3}, {point: 4}}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -52,9 +52,9 @@ func TestGetDataRecordPivot(t *testing.T) {
 		want dataRecord
 	}{
 		{"test 1", args{"20121015100100 first 1 2 3"},
-			dataRecord{time.Date(2012, time.October, 15, 10, 1, 0, 0, time.Local), "first", []float32{1, 2, 3}}},
+			dataRecord{time.Date(2012, time.October, 15, 10, 1, 0, 0, time.Local), "first", []dataPoint{{point: 1}, {point: 2}, {point: 3}}}},
 		{"test 2", args{"20121015100130 second 2 3 4"},
-			dataRecord{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local), "second", []float32{2, 3, 4}}},
+			dataRecord{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local), "second", []dataPoint{{point: 2}, {point: 3}, {point: 4}}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -78,7 +78,7 @@ func Test_dataReader_ReadDataRecord(t *testing.T) {
 			delimiter:   []byte{' '},
 
 			points: 3,
-			data:   dataReaderData{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local): {"": []float32{1, 2, 3}}},
+			data:   dataReaderData{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local): {"": []dataPoint{{point: 1}, {point: 2}, {point: 3}}}},
 		},
 			"20121015100130 1 2 3",
 		},
@@ -112,19 +112,19 @@ func Test_dataColumns_addDataRecord(t *testing.T) {
 		{
 			"test 1",
 			dataColumns{names: []string{}, statistic: map[string][]columnStatistic{}},
-			dataRecord{time.Date(2012, time.October, 15, 10, 1, 0, 0, time.Local), "first", []float32{1, 2, 3}},
+			dataRecord{time.Date(2012, time.October, 15, 10, 1, 0, 0, time.Local), "first", []dataPoint{{point: 1}, {point: 2}, {point: 3}}},
 			dataColumns{names: []string{}, statistic: map[string][]columnStatistic{"first": {{1, 1, 1, 1}, {2, 2, 2, 1}, {3, 3, 3, 1}}}},
 		},
 		{
 			"test 2",
 			dataColumns{names: []string{}, statistic: map[string][]columnStatistic{}},
-			dataRecord{time.Date(2012, time.October, 15, 10, 1, 0, 0, time.Local), "", []float32{1, 2, 3}},
+			dataRecord{time.Date(2012, time.October, 15, 10, 1, 0, 0, time.Local), "", []dataPoint{{point: 1}, {point: 2}, {point: 3}}},
 			dataColumns{names: []string{}, statistic: map[string][]columnStatistic{"": {{1, 1, 1, 1}, {2, 2, 2, 1}, {3, 3, 3, 1}}}},
 		},
 		{
 			"test 3",
 			dataColumns{names: []string{}, statistic: map[string][]columnStatistic{"first": {{1, 1, 1, 1}, {2, 2, 2, 1}, {3, 3, 3, 1}}}},
-			dataRecord{time.Date(2012, time.October, 15, 10, 1, 0, 0, time.Local), "first", []float32{10, -2, 3}},
+			dataRecord{time.Date(2012, time.October, 15, 10, 1, 0, 0, time.Local), "first", []dataPoint{{point: 10}, {point: -2}, {point: 3}}},
 			dataColumns{names: []string{}, statistic: map[string][]columnStatistic{"first": {{1, 10, 11, 2}, {-2, 2, 0, 2}, {3, 3, 6, 2}}}},
 		},
 	}

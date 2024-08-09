@@ -13,17 +13,17 @@ import (
 
 type ColumnStatistic struct {
 	Name    string
-	Minimum float32
-	Maximum float32
-	Average float32
+	Minimum float64
+	Maximum float64
+	Average float64
 }
 
-type dataReaderData map[time.Time]map[string][]float32
+type dataReaderData map[time.Time]map[string][]dataPoint
 
 type columnStatistic struct {
-	minimum float32
-	maximum float32
-	sum     float32
+	minimum float64
+	maximum float64
+	sum     float64
 	count   int
 }
 
@@ -47,7 +47,12 @@ type dataReader struct {
 type dataRecord struct {
 	dateTime time.Time
 	pivot    string
-	points   []float32
+	points   []dataPoint
+}
+
+type dataPoint struct {
+	point  float64
+	isNull bool
 }
 
 var checkErr = func(err error) {
@@ -122,7 +127,7 @@ func (obj *dataReader) ReadDataRecord(data string) {
 
 	_, ok := obj.data[record.dateTime]
 	if !ok {
-		obj.data[record.dateTime] = make(map[string][]float32)
+		obj.data[record.dateTime] = make(map[string][]dataPoint)
 	}
 	obj.data[record.dateTime][record.pivot] = record.points
 }
@@ -157,7 +162,7 @@ func (obj *dataReader) GetDataRows() []string {
 
 			if ok {
 				for i := range points {
-					writer.WriteString(fmt.Sprintf(", %g", points[i]))
+					writer.WriteString(points[i].string())
 				}
 			} else {
 				writer.WriteString(blankPoints)
@@ -190,9 +195,8 @@ func (obj *dataColumns) addDataRecord(data dataRecord) {
 
 	element := obj.statistic[data.pivot]
 	for i, dataPoint := range data.points {
-		element[i].addDataPoint(dataPoint)
+		element[i].addDataPoint(dataPoint.float64())
 	}
-
 }
 
 func (obj *dataColumns) getPivotColumnNames() []string {
@@ -218,7 +222,7 @@ func (obj *dataColumns) getColumnStatistics() []ColumnStatistic {
 			Name:    name,
 			Minimum: data.minimum,
 			Maximum: data.maximum,
-			Average: data.sum / float32(data.count),
+			Average: data.sum / float64(data.count),
 		}
 	}
 
@@ -254,7 +258,7 @@ func (obj *dataColumns) getColumnStatistics() []ColumnStatistic {
 ///////////////////////////////////////////////////////
 // columnStatistic
 
-func (obj *columnStatistic) addDataPoint(data float32) {
+func (obj *columnStatistic) addDataPoint(data float64) {
 	if obj.count == 0 {
 		obj.minimum = data
 		obj.maximum = data
@@ -280,7 +284,7 @@ func (obj *dataReader) getDataRecord(data string) (record dataRecord) {
 	}
 	scan.Split(onDelimiter) //bufio.ScanWords
 
-	record.points = make([]float32, 0, 5)
+	record.points = make([]dataPoint, 0, 5)
 
 	for column := 1; scan.Scan(); column++ {
 		word := scan.Text()
@@ -299,10 +303,42 @@ func (obj *dataReader) getDataRecord(data string) (record dataRecord) {
 			continue
 		}
 
-		s, err := strconv.ParseFloat(word, 32)
-		checkErr(err)
-		record.points = append(record.points, float32(s))
+		record.points = append(record.points, newDataPoint(word))
 	}
 
 	return
+}
+
+///////////////////////////////////////////////////////
+// datePoint
+
+func newDataPoint(data string) (point dataPoint) {
+	point.setValue(data)
+	return
+}
+
+func (obj *dataPoint) setValue(data string) {
+
+	if len(strings.TrimSpace(data)) == 0 {
+		obj.isNull = true
+		return
+	}
+
+	s, err := strconv.ParseFloat(data, 32)
+	checkErr(err)
+	obj.point = s
+}
+
+func (obj *dataPoint) string() string {
+	if obj.isNull {
+		return ", null"
+	}
+	return fmt.Sprintf(", %g", obj.point)
+}
+
+func (obj *dataPoint) float64() float64 {
+	if obj.isNull {
+		return 0
+	}
+	return obj.point
 }
