@@ -40,8 +40,7 @@ type dataReader struct {
 	isColumnNamesInFirstRow bool
 
 	columns dataColumns
-	points  int
-	data    dataReaderData
+	data dataReaderData
 }
 
 type dataRecord struct {
@@ -121,9 +120,6 @@ func (obj *dataReader) ReadDataRecord(data string) {
 	record := obj.getDataRecord(data)
 
 	obj.columns.addDataRecord(record)
-	if obj.points < len(record.points) {
-		obj.points = len(record.points)
-	}
 
 	_, ok := obj.data[record.dateTime]
 	if !ok {
@@ -145,27 +141,23 @@ func (obj *dataReader) GetDataRows() []string {
 	buffer := new(bytes.Buffer)
 	writer := bufio.NewWriter(buffer)
 
-	for i := 0; i < obj.points; i++ {
-		writer.WriteString(", null")
-	}
-	writer.Flush()
-	blankPoints := buffer.String()
-	buffer.Reset()
-
 	for dateTime, data := range obj.data {
 
 		writer.WriteString("[")
 		writer.WriteString(fmt.Sprintf("new Date(%s)", dateTime.Format("2006, 01, 02, 15, 04, 05")))
 
 		for _, columnName := range columns {
-			points, ok := data[columnName]
-
-			if ok {
+			if points, ok := data[columnName]; ok {
 				for i := range points {
 					writer.WriteString(points[i].string())
 				}
-			} else {
-				writer.WriteString(blankPoints)
+				continue
+			}
+			if points, ok := obj.columns.statistic[columnName]; ok {
+				for range points {
+					writer.WriteString(", null")
+				}
+				continue
 			}
 		}
 

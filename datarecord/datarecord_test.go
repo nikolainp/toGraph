@@ -2,6 +2,7 @@ package datarecord
 
 import (
 	"reflect"
+	"sort"
 	"testing"
 	"time"
 
@@ -77,8 +78,7 @@ func Test_dataReader_ReadDataRecord(t *testing.T) {
 			pivotColumn: 0,
 			delimiter:   []byte{' '},
 
-			points: 3,
-			data:   dataReaderData{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local): {"": []dataPoint{{point: 1}, {point: 2}, {point: 3}}}},
+			data: dataReaderData{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local): {"": []dataPoint{{point: 1}, {point: 2}, {point: 3}}}},
 		},
 			"20121015100130 1 2 3",
 		},
@@ -186,12 +186,12 @@ func Test_dataColumns_getColumnStatistics(t *testing.T) {
 		},
 		{
 			"test 4",
-			dataColumns{names: []string{"A","B","C"}, statistic: map[string][]columnStatistic{"": {{1, 1, 1, 1}, {2, 2, 2, 1}, {3, 3, 3, 1}}}},
+			dataColumns{names: []string{"A", "B", "C"}, statistic: map[string][]columnStatistic{"": {{1, 1, 1, 1}, {2, 2, 2, 1}, {3, 3, 3, 1}}}},
 			[]ColumnStatistic{{"A", 1, 1, 1}, {"B", 2, 2, 2}, {"C", 3, 3, 3}},
 		},
 		{
 			"test 5",
-			dataColumns{names: []string{"A","B","C"}, statistic: map[string][]columnStatistic{"first": {{1, 1, 1, 1}, {2, 2, 2, 1}, {3, 3, 3, 1}}}},
+			dataColumns{names: []string{"A", "B", "C"}, statistic: map[string][]columnStatistic{"first": {{1, 1, 1, 1}, {2, 2, 2, 1}, {3, 3, 3, 1}}}},
 			[]ColumnStatistic{{"first A", 1, 1, 1}, {"first B", 2, 2, 2}, {"first C", 3, 3, 3}},
 		},
 	}
@@ -199,6 +199,69 @@ func Test_dataColumns_getColumnStatistics(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.obj.getColumnStatistics(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("dataColumns.getColumnStatistics() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_dataReader_GetDataRows(t *testing.T) {
+	tests := []struct {
+		name string
+		obj  dataReader
+		want []string
+	}{
+		{"test 1", dataReader{
+			dateColumn:  1,
+			dateFormat:  "20060102150405",
+			pivotColumn: 0,
+			delimiter:   []byte{' '},
+
+			data: dataReaderData{
+				time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local): {
+					"": []dataPoint{{point: 1}, {point: 2}, {point: 3}}}},
+		},
+			[]string{"[new Date(2012, 10, 15, 10, 01, 30), 1, 2, 3]"},
+		},
+		{"test 2", dataReader{
+			dateColumn:  1,
+			dateFormat:  "20060102150405",
+			pivotColumn: 0,
+			delimiter:   []byte{' '},
+
+			columns: dataColumns{statistic: map[string][]columnStatistic{"a1": {}}},
+			data: dataReaderData{
+				time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local): {
+					"a1": []dataPoint{{point: 1}, {point: 2}, {point: 3}}}},
+		},
+			[]string{"[new Date(2012, 10, 15, 10, 01, 30), 1, 2, 3]"},
+		},
+		{"test 3", dataReader{
+			dateColumn:  1,
+			dateFormat:  "20060102150405",
+			pivotColumn: 0,
+			delimiter:   []byte{' '},
+
+			columns: dataColumns{statistic: map[string][]columnStatistic{
+				"a1": {{}, {}},
+				"b2": {{}, {}, {}}}},
+			data: dataReaderData{
+				time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local): {
+					"a1": []dataPoint{{point: 1}, {point: 2}}},
+				time.Date(2012, time.October, 15, 10, 1, 31, 0, time.Local): {
+					"b2": []dataPoint{{point: 4}, {point: 5}, {point: 6}}},
+			},
+		},
+			[]string{
+				"[new Date(2012, 10, 15, 10, 01, 30), 1, 2, null, null, null]",
+				"[new Date(2012, 10, 15, 10, 01, 31), null, null, 4, 5, 6]"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.obj.GetDataRows()
+			sort.Slice(got, func(i, j int) bool { return got[i] < got[j] })
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("dataReader.GetDataRows() = %v, want %v", got, tt.want)
 			}
 		})
 	}
