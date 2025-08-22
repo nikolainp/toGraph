@@ -9,9 +9,16 @@ import (
 	"strings"
 	"text/template"
 
+	_ "embed"
+	
 	datarecord "github.com/nikolainp/toGraph/datarecord"
 	state "github.com/nikolainp/toGraph/statecontext"
 )
+
+
+//go:embed htmlTemplate.gohtml
+var graphTemplate string
+
 
 var checkErr = func(err error) {
 	if err != nil {
