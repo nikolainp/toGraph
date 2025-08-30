@@ -10,7 +10,7 @@ https://developers.google.com/chart/interactive/docs/gallery/annotationchart))
 ## Usage:
 ```sh
 $ toGraph -h
-usage: toGraph [<flags>] file ...
+usage: toGraph [<flags>] file
   -cf
         column names in the first row of the data file
   -columns string
