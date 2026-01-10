@@ -5,20 +5,52 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
 )
 
-type ColumnStatistic struct {
-	Name    string
+// DataSeries struct
+type DataSeries struct {
+	Name string
+
 	Minimum float64
 	Maximum float64
+	Count   int
 	Average float64
+	Data    string
 }
 
-type dataReaderData map[time.Time]map[string][]dataPoint
+// DataReader ...
+type DataReader interface {
+	WithDateFormat(string) DataReader
+	WithDateColumn(int) DataReader
+	WithPivotColumn(int) DataReader
+	WithDelimiter(string) DataReader
+	WithColumnNames(string) DataReader
+	WithColumnNamesInFirstRow(bool) DataReader
+
+	ReadDataRecord(string)
+	GetData() []DataSeries
+}
+
+///////////////////////////////////////////////////////
+
+type dataReader struct {
+	dateFormat              string
+	dateColumn              int
+	pivotColumn             int
+	delimiter               []byte
+	isColumnNamesInFirstRow bool
+	columnNames             []string
+
+	data map[string]*dataReaderData
+}
+
+type dataReaderData struct {
+	statistic columnStatistic
+	data      []dataPoint
+}
 
 type columnStatistic struct {
 	minimum float64
@@ -27,32 +59,19 @@ type columnStatistic struct {
 	count   int
 }
 
-type dataColumns struct {
-	names     []string
-	statistic map[string][]columnStatistic
-}
-
-type dataReader struct {
-	dateFormat              string
-	dateColumn              int
-	pivotColumn             int
-	delimiter               []byte
-	isColumnNamesInFirstRow bool
-
-	columns dataColumns
-	data dataReaderData
+type dataPoint struct {
+	dateTime time.Time
+	point    float64
+	isNull   bool
 }
 
 type dataRecord struct {
 	dateTime time.Time
 	pivot    string
-	points   []dataPoint
+	data     []string
 }
 
-type dataPoint struct {
-	point  float64
-	isNull bool
-}
+///////////////////////////////////////////////////////
 
 var checkErr = func(err error) {
 	if err != nil {
@@ -63,48 +82,46 @@ var checkErr = func(err error) {
 ///////////////////////////////////////////////////////
 // dataReader
 
-func GetDataReader() (reader dataReader) {
+// GetDataReader ...
+func GetDataReader() DataReader {
 
-	reader.columns.initialize()
-	reader.data = make(dataReaderData)
+	obj := new(dataReader)
+	obj.data = make(map[string]*dataReaderData)
 
-	return
+	return obj
 }
 
-func (obj *dataReader) WithDateFormat(dateFormat string) *dataReader {
+func (obj *dataReader) WithDateFormat(dateFormat string) DataReader {
 	obj.dateFormat = dateFormat
 	return obj
 }
 
-func (obj *dataReader) WithDateColumn(column int) *dataReader {
+func (obj *dataReader) WithDateColumn(column int) DataReader {
 	obj.dateColumn = column
 	return obj
 }
 
-func (obj *dataReader) WithPivotColumn(column int) *dataReader {
+func (obj *dataReader) WithPivotColumn(column int) DataReader {
 	obj.pivotColumn = column
 	return obj
 }
 
-func (obj *dataReader) WithDelimiter(delimiter string) *dataReader {
+func (obj *dataReader) WithDelimiter(delimiter string) DataReader {
 	obj.delimiter = []byte(delimiter)
 	return obj
 }
 
-func (obj *dataReader) WithColumnNames(data string) *dataReader {
+func (obj *dataReader) WithColumnNames(data string) DataReader {
 	if len(data) == 0 {
 		return obj
 	}
 
-	obj.columns.names = strings.Split(data, ",")
-	for i := range obj.columns.names {
-		obj.columns.names[i] = strings.TrimSpace(obj.columns.names[i])
-	}
+	obj.columnNames = strings.Split(data, ",")
 
 	return obj
 }
 
-func (obj *dataReader) WithColumnNamesInFirstRow(data bool) *dataReader {
+func (obj *dataReader) WithColumnNamesInFirstRow(data bool) DataReader {
 	obj.isColumnNamesInFirstRow = data
 	return obj
 }
@@ -113,153 +130,93 @@ func (obj *dataReader) ReadDataRecord(data string) {
 
 	if obj.isColumnNamesInFirstRow {
 		obj.isColumnNamesInFirstRow = false
-		obj.columns.names = strings.Split(data, string(obj.delimiter))
+		obj.columnNames = strings.Split(data, string(obj.delimiter))
 		return
 	}
 
 	record := obj.getDataRecord(data)
+	for id := range record.data {
+		column := obj.getColumnName(record.pivot, id)
+		point := newDataPoint(record.dateTime, record.data[id])
 
-	obj.columns.addDataRecord(record)
-
-	_, ok := obj.data[record.dateTime]
-	if !ok {
-		obj.data[record.dateTime] = make(map[string][]dataPoint)
-	}
-	obj.data[record.dateTime][record.pivot] = record.points
-}
-
-func (obj *dataReader) GetColumns() []ColumnStatistic {
-	return obj.columns.getColumnStatistics()
-}
-
-func (obj *dataReader) GetDataRows() []string {
-
-	rows := make([]string, 0, 10)
-
-	columns := obj.columns.getPivotColumnNames()
-
-	buffer := new(bytes.Buffer)
-	writer := bufio.NewWriter(buffer)
-
-	for dateTime, data := range obj.data {
-
-		writer.WriteString("[")
-		writer.WriteString(fmt.Sprintf("new Date(%s)", dateTime.Format("2006, 01, 02, 15, 04, 05")))
-
-		for _, columnName := range columns {
-			if points, ok := data[columnName]; ok {
-				for i := range points {
-					writer.WriteString(points[i].string())
-				}
-				continue
-			}
-			if points, ok := obj.columns.statistic[columnName]; ok {
-				for range points {
-					writer.WriteString(", null")
-				}
-				continue
-			}
-		}
-
-		writer.WriteString("]")
-		writer.Flush()
-
-		rows = append(rows, buffer.String())
-		buffer.Reset()
-	}
-
-	return rows
-}
-
-///////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////
-// dataColumns
-
-func (obj *dataColumns) initialize() {
-	obj.statistic = make(map[string][]columnStatistic)
-}
-
-func (obj *dataColumns) addDataRecord(data dataRecord) {
-	if _, ok := obj.statistic[data.pivot]; !ok {
-		obj.statistic[data.pivot] = make([]columnStatistic, len(data.points))
-	}
-
-	element := obj.statistic[data.pivot]
-	for i, dataPoint := range data.points {
-		element[i].addDataPoint(dataPoint.float64())
-	}
-}
-
-func (obj *dataColumns) getPivotColumnNames() []string {
-	columns := make([]string, 0, 10)
-	if len(obj.statistic) == 0 {
-		columns = append(columns, "")
-	} else {
-		for name := range obj.statistic {
-			columns = append(columns, name)
-		}
-	}
-
-	sort.Strings(columns)
-
-	return columns
-}
-
-func (obj *dataColumns) getColumnStatistics() []ColumnStatistic {
-	columns := make([]ColumnStatistic, 0)
-
-	getColumnStatistic := func(name string, data columnStatistic) ColumnStatistic {
-		return ColumnStatistic{
-			Name:    name,
-			Minimum: data.minimum,
-			Maximum: data.maximum,
-			Average: data.sum / float64(data.count),
-		}
-	}
-
-	columnNames := obj.getPivotColumnNames()
-	for i := range columnNames {
-		name := columnNames[i]
-		pivotData := obj.statistic[name]
-
-		if len(pivotData) == 1 {
-			columns = append(columns, getColumnStatistic(name, pivotData[0]))
+		if data, ok := obj.data[column]; ok {
+			data.statistic.addDataPoint(point)
+			data.data = append(data.data, point)
 		} else {
-			for i, data := range pivotData {
-				var columnName string
-
-				switch {
-				case i < len(obj.names) && name == "":
-					columnName = obj.names[i]
-				case i < len(obj.names) && name != "":
-					columnName = fmt.Sprintf("%s %s", name, obj.names[i])
-				case name == "":
-					columnName = fmt.Sprintf("Column %d", i+1)
-				default:
-					columnName = fmt.Sprintf("%s %d", name, i+1)
-				}
-				columns = append(columns, getColumnStatistic(columnName, data))
-			}
+			data = new(dataReaderData)
+			data.statistic.addDataPoint(point)
+			data.data = make([]dataPoint, 0)
+			data.data = append(data.data, point)
+			obj.data[column] = data
 		}
 	}
 
-	return columns
+}
+
+func (obj *dataReader) GetData() []DataSeries {
+
+	series := make([]DataSeries, len(obj.data))
+	id := 0
+
+	for dataName, data := range obj.data {
+		series[id].Name = dataName
+
+		series[id].Minimum = data.statistic.minimum
+		series[id].Maximum = data.statistic.maximum
+		series[id].Count = data.statistic.count
+		series[id].Average = data.statistic.average()
+
+		rows := make([]string, len(data.data))
+		for i, point := range data.data {
+			rows[i] = point.string()
+		}
+		series[id].Data = strings.Join(rows, ",")
+
+		id++
+	}
+
+	return series
+}
+
+///////////////////////////////////////////////////////
+
+func (obj *dataReader) getColumnName(pivotName string, id int) string {
+	var columnName string
+
+	switch {
+	case id < len(obj.columnNames) && pivotName == "":
+		columnName = obj.columnNames[id]
+	case id < len(obj.columnNames) && pivotName != "":
+		columnName = fmt.Sprintf("%s %s", pivotName, obj.columnNames[id])
+	case pivotName == "":
+		columnName = fmt.Sprintf("Column %d", id+1)
+	default:
+		columnName = fmt.Sprintf("%s %d", pivotName, id+1)
+	}
+
+	return columnName
 }
 
 ///////////////////////////////////////////////////////
 // columnStatistic
 
-func (obj *columnStatistic) addDataPoint(data float64) {
+func (obj *columnStatistic) addDataPoint(data dataPoint) {
 	if obj.count == 0 {
-		obj.minimum = data
-		obj.maximum = data
+		obj.minimum = data.float64()
+		obj.maximum = data.float64()
 	} else {
-		obj.minimum = min(obj.minimum, data)
-		obj.maximum = max(obj.maximum, data)
+		obj.minimum = min(obj.minimum, data.float64())
+		obj.maximum = max(obj.maximum, data.float64())
 	}
-	obj.sum += data
-	obj.count++
+	obj.sum += data.float64()
+	obj.count += data.count()
+}
+
+func (obj *columnStatistic) average() float64 {
+	if obj.count == 0 {
+		return 0
+	}
+	return obj.sum / float64(obj.count)
 }
 
 ///////////////////////////////////////////////////////
@@ -276,7 +233,7 @@ func (obj *dataReader) getDataRecord(data string) (record dataRecord) {
 	}
 	scan.Split(onDelimiter) //bufio.ScanWords
 
-	record.points = make([]dataPoint, 0, 5)
+	record.data = make([]string, 0, 5)
 
 	for column := 1; scan.Scan(); column++ {
 		word := scan.Text()
@@ -295,7 +252,7 @@ func (obj *dataReader) getDataRecord(data string) (record dataRecord) {
 			continue
 		}
 
-		record.points = append(record.points, newDataPoint(word))
+		record.data = append(record.data, word)
 	}
 
 	return
@@ -304,7 +261,8 @@ func (obj *dataReader) getDataRecord(data string) (record dataRecord) {
 ///////////////////////////////////////////////////////
 // datePoint
 
-func newDataPoint(data string) (point dataPoint) {
+func newDataPoint(dateTime time.Time, data string) (point dataPoint) {
+	point.dateTime = dateTime
 	point.setValue(data)
 	return
 }
@@ -323,9 +281,11 @@ func (obj *dataPoint) setValue(data string) {
 
 func (obj *dataPoint) string() string {
 	if obj.isNull {
-		return ", null"
+		return fmt.Sprintf("['%s', null]",
+			obj.dateTime.Format("2006-01-02 15:04:05"))
 	}
-	return fmt.Sprintf(", %g", obj.point)
+	return fmt.Sprintf("['%s', %g]",
+		obj.dateTime.Format("2006-01-02 15:04:05"), obj.point)
 }
 
 func (obj *dataPoint) float64() float64 {
@@ -333,4 +293,11 @@ func (obj *dataPoint) float64() float64 {
 		return 0
 	}
 	return obj.point
+}
+
+func (obj *dataPoint) count() int {
+	if obj.isNull {
+		return 0
+	}
+	return 1
 }

@@ -10,15 +10,13 @@ import (
 	"text/template"
 
 	_ "embed"
-	
+
 	datarecord "github.com/nikolainp/toGraph/datarecord"
 	state "github.com/nikolainp/toGraph/statecontext"
 )
 
-
-//go:embed htmlTemplate.gohtml
+//go:embed htmlTemplate.echarts.html
 var graphTemplate string
-
 
 var checkErr = func(err error) {
 	if err != nil {
@@ -91,23 +89,22 @@ func processFile(sIn io.Reader, sOut io.Writer, config state.Configuration, titl
 	reader.WithColumnNames(config.ColumnNames)
 	reader.WithColumnNamesInFirstRow(config.IsColumnNamesInFirstRow)
 
-	dataGraph, err := template.New("dataGraph").Parse(graphTemplate)
-	checkErr(err)
 	for i := 0; scanner.Scan(); i++ {
 		dataString := scanner.Text()
 		reader.ReadDataRecord(dataString)
 	}
 
 	data := struct {
-		Title    string
-		Columns  []datarecord.ColumnStatistic
-		DataRows []string
+		Title  string
+		Series []datarecord.DataSeries
 	}{
-		Title:    title,
-		Columns:  reader.GetColumns(),
-		DataRows: reader.GetDataRows(),
+		Title:  title,
+		Series: reader.GetData(),
 	}
 
+	dataGraph, err := template.New("dataGraph").Parse(graphTemplate)
+	checkErr(err)
+	dataGraph.Delims("/*{{", "}}*/")
 	err = dataGraph.Execute(sOut, data)
 	checkErr(err)
 
