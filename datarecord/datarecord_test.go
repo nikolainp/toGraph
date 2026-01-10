@@ -82,15 +82,15 @@ func Test_dataReader_ReadDataRecord(t *testing.T) {
 				data: map[string]*dataReaderData{
 					"Column 1": {
 						statistic: columnStatistic{1, 1, 1, 1},
-						data:      []dataPoint{{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local), 1, false}},
+						points:    []dataPoint{{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local), 1, false}},
 					},
 					"Column 2": {
 						statistic: columnStatistic{2, 2, 2, 1},
-						data:      []dataPoint{{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local), 2, false}},
+						points:    []dataPoint{{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local), 2, false}},
 					},
 					"Column 3": {
 						statistic: columnStatistic{3, 3, 3, 1},
-						data:      []dataPoint{{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local), 3, false}},
+						points:    []dataPoint{{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local), 3, false}},
 					},
 				},
 			},
@@ -133,7 +133,7 @@ func Test_dataReader_GetData(t *testing.T) {
 			data: map[string]*dataReaderData{
 				"Column 1": {
 					statistic: columnStatistic{1, 1, 1, 1},
-					data:      []dataPoint{{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local), 1, false}},
+					points:    []dataPoint{{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local), 1, false}},
 				},
 			},
 		},
@@ -150,7 +150,7 @@ func Test_dataReader_GetData(t *testing.T) {
 			data: map[string]*dataReaderData{
 				"Column 1": {
 					statistic: columnStatistic{1, 3, 6, 3},
-					data: []dataPoint{
+					points: []dataPoint{
 						{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local), 1, false},
 						{time.Date(2012, time.October, 15, 10, 1, 40, 0, time.Local), 2, false},
 						{time.Date(2012, time.October, 15, 10, 1, 50, 0, time.Local), 3, false},
@@ -171,7 +171,7 @@ func Test_dataReader_GetData(t *testing.T) {
 			data: map[string]*dataReaderData{
 				"Column 1": {
 					statistic: columnStatistic{1, 3, 6, 3},
-					data: []dataPoint{
+					points: []dataPoint{
 						{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local), 1, false},
 						{time.Date(2012, time.October, 15, 10, 1, 40, 0, time.Local), 2, false},
 						{time.Date(2012, time.October, 15, 10, 1, 50, 0, time.Local), 3, false},
@@ -179,7 +179,7 @@ func Test_dataReader_GetData(t *testing.T) {
 				},
 				"Column 2": {
 					statistic: columnStatistic{1, 3, 6, 3},
-					data: []dataPoint{
+					points: []dataPoint{
 						{time.Date(2012, time.October, 15, 10, 1, 30, 0, time.Local), 4, false},
 						{time.Date(2012, time.October, 15, 10, 1, 40, 0, time.Local), 5, false},
 						{time.Date(2012, time.October, 15, 10, 1, 50, 0, time.Local), 6, false},

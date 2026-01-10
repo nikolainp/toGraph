@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -49,7 +50,7 @@ type dataReader struct {
 
 type dataReaderData struct {
 	statistic columnStatistic
-	data      []dataPoint
+	points    []dataPoint
 }
 
 type columnStatistic struct {
@@ -60,15 +61,15 @@ type columnStatistic struct {
 }
 
 type dataPoint struct {
-	dateTime time.Time
-	point    float64
-	isNull   bool
+	timestamp time.Time
+	point     float64
+	isNull    bool
 }
 
 type dataRecord struct {
-	dateTime time.Time
-	pivot    string
-	data     []string
+	timestamp time.Time
+	pivot     string
+	data      []string
 }
 
 ///////////////////////////////////////////////////////
@@ -137,16 +138,16 @@ func (obj *dataReader) ReadDataRecord(data string) {
 	record := obj.getDataRecord(data)
 	for id := range record.data {
 		column := obj.getColumnName(record.pivot, id)
-		point := newDataPoint(record.dateTime, record.data[id])
+		point := newDataPoint(record.timestamp, record.data[id])
 
 		if data, ok := obj.data[column]; ok {
 			data.statistic.addDataPoint(point)
-			data.data = append(data.data, point)
+			data.points = append(data.points, point)
 		} else {
 			data = new(dataReaderData)
 			data.statistic.addDataPoint(point)
-			data.data = make([]dataPoint, 0)
-			data.data = append(data.data, point)
+			data.points = make([]dataPoint, 0)
+			data.points = append(data.points, point)
 			obj.data[column] = data
 		}
 	}
@@ -166,8 +167,12 @@ func (obj *dataReader) GetData() []DataSeries {
 		series[id].Count = data.statistic.count
 		series[id].Average = data.statistic.average()
 
-		rows := make([]string, len(data.data))
-		for i, point := range data.data {
+		sort.Slice(data.points, func(i, j int) bool {
+			return data.points[i].timestamp.After(data.points[j].timestamp)
+		})
+
+		rows := make([]string, len(data.points))
+		for i, point := range data.points {
 			rows[i] = point.string()
 		}
 		series[id].Data = strings.Join(rows, ",")
@@ -241,7 +246,7 @@ func (obj *dataReader) getDataRecord(data string) (record dataRecord) {
 		if column == obj.dateColumn {
 			t, err := time.ParseInLocation(obj.dateFormat, word, time.Local)
 			checkErr(err)
-			record.dateTime = t
+			record.timestamp = t
 
 			continue
 		}
@@ -262,7 +267,7 @@ func (obj *dataReader) getDataRecord(data string) (record dataRecord) {
 // datePoint
 
 func newDataPoint(dateTime time.Time, data string) (point dataPoint) {
-	point.dateTime = dateTime
+	point.timestamp = dateTime
 	point.setValue(data)
 	return
 }
@@ -282,10 +287,10 @@ func (obj *dataPoint) setValue(data string) {
 func (obj *dataPoint) string() string {
 	if obj.isNull {
 		return fmt.Sprintf("['%s', null]",
-			obj.dateTime.Format("2006-01-02 15:04:05"))
+			obj.timestamp.Format("2006-01-02 15:04:05"))
 	}
 	return fmt.Sprintf("['%s', %g]",
-		obj.dateTime.Format("2006-01-02 15:04:05"), obj.point)
+		obj.timestamp.Format("2006-01-02 15:04:05"), obj.point)
 }
 
 func (obj *dataPoint) float64() float64 {

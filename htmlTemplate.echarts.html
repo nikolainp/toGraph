@@ -17,6 +17,7 @@
             var graphChart;
             var graphOptions;
             var plotColors;
+            var dataTable;
 
             function plotOnLoad(){
                 plotColors = plotGraph();
@@ -28,24 +29,6 @@
                 graphChart = echarts.init(chartDom, null, {
                     renderer: 'canvas'
                 });
-
-                let data1 = [
-                    ['2025-12-25 12:01:00', 100],
-                    ['2025-12-25 12:02:00', 200],
-                    ['2025-12-25 12:03:00', 300],
-                    ['2025-12-25 12:04:00', 250],
-                    ['2025-12-25 12:05:00', 270],
-                    ['2025-12-25 12:06:00', 180],
-                ];
-                let data2 = [
-                    ['2025-12-25 12:01:30', 170],
-                    ['2025-12-25 12:02:30', 140],
-                    ['2025-12-25 12:03:30', 130],
-                    ['2025-12-25 12:04:30', 185],
-                    ['2025-12-25 12:05:30', 137],
-                    ['2025-12-25 12:06:30', 180],
-                ];
-
 
                 graphOptions = {
                     animation: false,
@@ -101,7 +84,7 @@
                     }
                 };
 
-                /*{{- range $i, $data := .Series -}}*/
+                /*{{ range $i, $data := .Series }}*/
                 graphOptions.series.push({
                     name: '/*{{$data.Name}}*/',
                     type: 'line',
@@ -109,7 +92,7 @@
                     sampling: 'lttb',
                     connectNulls: true,
                     data: [/*{{$data.Data}}*/],
-                    phasis: {itemStyle: {color: 'black', width: 6}, lineStyle: {color: 'black',  width: 4}}
+                    emphasis: {itemStyle: {color: 'black', width: 6}, lineStyle: {color: 'black',  width: 4}}
                 });
                 /*{{end}}*/
 
@@ -128,7 +111,7 @@
             }
     
             function plotTable() {
-                var table = new DataTable('#statTable', {
+                dataTable = new DataTable('#statTable', {
                     paging: false,
                     info: false,
                     searching: false,
@@ -149,25 +132,25 @@
                     ]
                 });
 
-                table.on('change', 'input[type="checkbox"]', function() {
+                dataTable.on('change', 'input[type="checkbox"]', function() {
                     let $row = $(this).closest('tr');
-                    let rowData = table.row($row).data();
+                    let rowData = dataTable.row($row).data();
                     let dataName = rowData[1];
 
                     graphChart.dispatchAction({ type: 'legendToggleSelect', name: dataName });
                 });
-                table.on('mouseenter', 'tr', function() {
+                dataTable.on('mouseenter', 'tr', function() {
                     let $row = $(this).closest('tr');
-                    let rowData = table.row($row).data();
+                    let rowData = dataTable.row($row).data();
 
                     if (rowData != undefined) {
                         let dataName = rowData[1];
                         graphChart.dispatchAction({ type: 'highlight', seriesName: dataName});
                     }
                 });
-                table.on('mouseleave', 'tr', function() {
+                dataTable.on('mouseleave', 'tr', function() {
                     let $row = $(this).closest('tr');
-                    let rowData = table.row($row).data();
+                    let rowData = dataTable.row($row).data();
 
                     if (rowData != undefined) {
                         let dataName = rowData[1];

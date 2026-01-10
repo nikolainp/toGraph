@@ -102,9 +102,8 @@ func processFile(sIn io.Reader, sOut io.Writer, config state.Configuration, titl
 		Series: reader.GetData(),
 	}
 
-	dataGraph, err := template.New("dataGraph").Parse(graphTemplate)
+	dataGraph, err := template.New("dataGraph").Delims("/*{{", "}}*/").Parse(graphTemplate)
 	checkErr(err)
-	dataGraph.Delims("/*{{", "}}*/")
 	err = dataGraph.Execute(sOut, data)
 	checkErr(err)
 
