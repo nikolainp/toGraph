@@ -168,7 +168,7 @@ func (obj *dataReader) GetData() []DataSeries {
 		series[id].Average = data.statistic.average()
 
 		sort.Slice(data.points, func(i, j int) bool {
-			return data.points[i].timestamp.After(data.points[j].timestamp)
+			return data.points[j].timestamp.After(data.points[i].timestamp)
 		})
 
 		rows := make([]string, len(data.points))
