@@ -10,14 +10,61 @@
         <script src="https://cdn.jsdelivr.net/npm/echarts-gl/dist/echarts-gl.min.js"></script>
 
         <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-        <link rel="stylesheet" href="https://cdn.datatables.net/2.3.6/css/dataTables.dataTables.css" />
-        <script src="https://cdn.datatables.net/2.3.6/js/dataTables.js"></script>
+        <link href="https://cdn.datatables.net/v/dt/dt-3.0.1/datatables.min.css" rel="stylesheet">
+        <script src="https://cdn.datatables.net/v/dt/dt-3.0.1/datatables.min.js" ></script>
+
+        <script src="https://cdn.datatables.net/buttons/4.0.1/js/dataTables.buttons.min.js"></script>
+        <!-- Optional button libraries -->
+        <script src="https://cdn.datatables.net/buttons/4.0.1/js/buttons.colVis.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/4.0.1/js/buttons.html5.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/4.0.1/js/buttons.print.min.js"></script>
 
         <script type="text/javascript">
             var graphChart;
             var graphOptions;
             var plotColors;
-            var dataTable;
+            var graphTable;
+
+            DataTable.ext.buttons.btnSelectAll = {
+                className: 'buttons-alert',
+                text: 'SelectAll',
+                action: function (e, dt, node, config) {
+                    tableBtnSelect(true);
+                }
+            };
+            DataTable.ext.buttons.btnDeselectAll = {
+                className: 'buttons-alert',
+                text: 'DeselectAll',
+                action: function (e, dt, node, config) {
+                    tableBtnSelect(false);
+                }
+            };
+            DataTable.ext.buttons.btnInvert = {
+                className: 'buttons-alert',
+                text: 'Invert',
+                action: function (e, dt, node, config) {
+                    tableBtnSelect();
+                }
+            };
+
+            function tableBtnSelect(value) {
+                const elements = document.querySelectorAll('.checkbox_check'); 
+                elements.forEach(element => {
+                    if (value === undefined) {
+                        element.checked = !element.checked;
+                    } else {
+                        element.checked = value;
+                    }
+                    tableOnChange(element);
+                });
+            }
+            function tableOnChange(element) {
+                let $row = element.closest('tr');
+                let rowData = graphTable.row($row).data();
+                let dataName = rowData[1];
+
+                graphChart.dispatchAction({ type: 'legendToggleSelect', name: dataName });
+            }
 
             function plotOnLoad(){
                 plotColors = plotGraph();
@@ -111,10 +158,15 @@
             }
     
             function plotTable() {
-                dataTable = new DataTable('#statTable', {
+                var table = new DataTable('#statTable', {
                     paging: false,
                     info: false,
                     searching: false,
+                    layout: {
+                        topStart: {
+                            buttons: ['btnSelectAll', 'btnDeselectAll', 'btnInvert']
+                        }
+                    },
                     "columnDefs": [
                         {
                             "targets": 0,
@@ -132,25 +184,21 @@
                     ]
                 });
 
-                dataTable.on('change', 'input[type="checkbox"]', function() {
-                    let $row = $(this).closest('tr');
-                    let rowData = dataTable.row($row).data();
-                    let dataName = rowData[1];
-
-                    graphChart.dispatchAction({ type: 'legendToggleSelect', name: dataName });
+                table.on('change', 'input[type="checkbox"]', function() {
+                    tableOnChange($(this));
                 });
-                dataTable.on('mouseenter', 'tr', function() {
+                table.on('mouseenter', 'tr', function() {
                     let $row = $(this).closest('tr');
-                    let rowData = dataTable.row($row).data();
+                    let rowData = table.row($row).data();
 
                     if (rowData != undefined) {
                         let dataName = rowData[1];
                         graphChart.dispatchAction({ type: 'highlight', seriesName: dataName});
                     }
                 });
-                dataTable.on('mouseleave', 'tr', function() {
+                table.on('mouseleave', 'tr', function() {
                     let $row = $(this).closest('tr');
-                    let rowData = dataTable.row($row).data();
+                    let rowData = table.row($row).data();
 
                     if (rowData != undefined) {
                         let dataName = rowData[1];
