@@ -93,6 +93,7 @@ func processFile(sIn io.Reader, sOut io.Writer, config state.Configuration, titl
 		dataString := scanner.Text()
 		reader.ReadDataRecord(dataString)
 	}
+	checkErr(scanner.Err())
 
 	data := struct {
 		Title  string

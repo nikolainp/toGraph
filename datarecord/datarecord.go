@@ -137,7 +137,8 @@ func (obj *dataReader) ReadDataRecord(data string) {
 
 	record := obj.getDataRecord(data)
 	for id := range record.data {
-		column := obj.getColumnName(record.pivot, id)
+		isSingleColumn := len(record.data) == 1
+		column := obj.getColumnName(record.pivot, id, isSingleColumn)
 		point := newDataPoint(record.timestamp, record.data[id])
 
 		if data, ok := obj.data[column]; ok {
@@ -185,7 +186,7 @@ func (obj *dataReader) GetData() []DataSeries {
 
 ///////////////////////////////////////////////////////
 
-func (obj *dataReader) getColumnName(pivotName string, id int) string {
+func (obj *dataReader) getColumnName(pivotName string, id int, isSingleColumn bool) string {
 	var columnName string
 
 	switch {
@@ -195,6 +196,8 @@ func (obj *dataReader) getColumnName(pivotName string, id int) string {
 		columnName = fmt.Sprintf("%s %s", pivotName, obj.columnNames[id])
 	case pivotName == "":
 		columnName = fmt.Sprintf("Column %d", id+1)
+	case isSingleColumn:
+		columnName = fmt.Sprintf("%s", pivotName)
 	default:
 		columnName = fmt.Sprintf("%s %d", pivotName, id+1)
 	}

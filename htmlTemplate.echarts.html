@@ -158,7 +158,7 @@
             }
     
             function plotTable() {
-                var table = new DataTable('#statTable', {
+                graphTable = new DataTable('#statTable', {
                     paging: false,
                     info: false,
                     searching: false,
@@ -184,10 +184,10 @@
                     ]
                 });
 
-                table.on('change', 'input[type="checkbox"]', function() {
+                graphTable.on('change', 'input[type="checkbox"]', function() {
                     tableOnChange($(this));
                 });
-                table.on('mouseenter', 'tr', function() {
+                graphTable.on('mouseenter', 'tr', function() {
                     let $row = $(this).closest('tr');
                     let rowData = table.row($row).data();
 
@@ -196,7 +196,7 @@
                         graphChart.dispatchAction({ type: 'highlight', seriesName: dataName});
                     }
                 });
-                table.on('mouseleave', 'tr', function() {
+                graphTable.on('mouseleave', 'tr', function() {
                     let $row = $(this).closest('tr');
                     let rowData = table.row($row).data();
 
