@@ -55,8 +55,16 @@
                     } else {
                         element.checked = value;
                     }
-                    tableOnChange(element);
                 });
+
+                if (value == undefined) {
+                    graphChart.dispatchAction({ type: 'legendInverseSelect' });
+                } else if ( value == true ) {
+                    graphChart.dispatchAction({ type: 'legendAllSelect' });
+                } else {
+                    graphChart.dispatchAction({ type: 'legendAllSelect' });
+                    graphChart.dispatchAction({ type: 'legendInverseSelect' });
+                }
             }
             function tableOnChange(element) {
                 let $row = element.closest('tr');
